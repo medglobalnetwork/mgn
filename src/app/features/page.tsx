@@ -305,7 +305,7 @@ export default function FeaturesPage() {
                     Join thousands of healthcare professionals and organizations building the future together.
                   </p>
                   <Link href="/auth/signup" className="bg-white text-[#0052CC] font-bold px-8 py-3.5 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
-                    Get Started – It's Free
+                    Join Early Access
                   </Link>
                </div>
                

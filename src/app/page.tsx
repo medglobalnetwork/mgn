@@ -53,7 +53,7 @@ export default async function Home() {
 
             <div className="flex flex-wrap items-center gap-4 mt-10 w-full">
               <Link href="/auth/signup" className="flex items-center justify-center bg-[#183670] text-white px-8 py-3.5 rounded-md font-bold text-base hover:bg-[#0B1B3D] transition-all shadow-md">
-                Get Started – It's Free
+                Join Early Access
               </Link>
               <Link href="#features" className="flex items-center justify-center bg-white text-[#183670] border border-gray-300 px-8 py-3.5 rounded-md font-bold text-base hover:bg-gray-50 transition-all">
                 Explore Features

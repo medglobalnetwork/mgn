@@ -287,7 +287,7 @@ export default function AboutUsPage() {
                <h3 className="text-3xl font-black mb-4 relative z-10">Be a Part of Our Mission</h3>
                <p className="text-blue-100 font-medium mb-8 max-w-sm relative z-10">Together, we can build a stronger, smarter, and healthier tomorrow.</p>
                <Link href="/auth/signup" className="bg-white text-[#0052CC] font-bold px-8 py-3 rounded-lg shadow-md hover:bg-gray-50 transition-colors relative z-10 flex items-center gap-2">
-                 Get Started - It's Free
+                 Join Early Access
                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                </Link>
             </div>

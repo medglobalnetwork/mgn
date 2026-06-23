@@ -140,7 +140,7 @@ export default function Navbar() {
                   Login
                 </Link>
                 <Link href="/auth/signup" className="rounded bg-[#183670] px-5 py-2 text-white hover:bg-[#0B1B3D] shadow-sm transition-all flex items-center gap-1">
-                  Get Started Free
+                  Join Early Access
                 </Link>
               </>
             )}
@@ -210,7 +210,7 @@ export default function Navbar() {
              ) : (
                <div className="flex flex-col gap-3">
                  <Link href="/auth/login" className="text-center rounded border border-[#183670] py-2.5 text-[#183670] font-bold">Login</Link>
-                 <Link href="/auth/signup" className="text-center rounded bg-[#183670] py-2.5 text-white font-bold">Get Started Free</Link>
+                 <Link href="/auth/signup" className="text-center rounded bg-[#183670] py-2.5 text-white font-bold">Join Early Access</Link>
                </div>
              )}
           </div>
