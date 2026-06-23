@@ -15,7 +15,7 @@ export default function FoundingMemberBenefits() {
   ];
 
   return (
-    <section className="w-full bg-[#0B1B3D] text-white py-16 relative overflow-hidden">
+    <section className="w-full bg-[#0B1B3D] text-white py-16 relative overflow-hidden transform-gpu">
       <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 bg-[url('/grid-pattern.svg')] bg-repeat z-0"></div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-12">
@@ -32,7 +32,7 @@ export default function FoundingMemberBenefits() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-4 max-w-4xl mx-auto">
           {benefits.map((benefit, idx) => (
-            <div key={idx} className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-colors">
+            <div key={idx} className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-xl sm:hover:bg-white/10 active:bg-white/10 transition-colors transform-gpu">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#00A67E]/20 flex items-center justify-center text-[#00A67E]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
               </div>
