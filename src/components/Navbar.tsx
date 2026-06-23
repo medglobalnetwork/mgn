@@ -34,34 +34,34 @@ export default function Navbar() {
 
   const getLinkClass = (path: string) => 
     pathname === path 
-      ? "text-[#0052CC] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#0052CC] transition-colors" 
-      : "text-gray-600 hover:text-[#0052CC] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-transparent transition-colors";
+      ? "text-[#183670] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#183670] transition-colors" 
+      : "text-gray-600 hover:text-[#183670] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-transparent transition-colors";
 
   const isGroupActive = (columns: NavSubGroup[]) => 
     columns.some(col => col.items.some(item => pathname === item.href));
   
   const getGroupClass = (columns: NavSubGroup[]) => 
     isGroupActive(columns)
-      ? "text-[#0052CC] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#0052CC] transition-colors"
-      : "text-gray-600 hover:text-[#0052CC] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-transparent transition-colors";
+      ? "text-[#183670] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#183670] transition-colors"
+      : "text-gray-600 hover:text-[#183670] relative py-1 after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-transparent transition-colors";
 
   const getMobileLinkClass = (path: string) => 
-    pathname === path ? "text-[#0052CC] font-semibold" : "text-gray-500 hover:text-[#0052CC]";
+    pathname === path ? "text-[#183670] font-semibold" : "text-gray-500 hover:text-[#183670]";
     
   const getMobileGroupClass = (columns: NavSubGroup[]) => 
-    isGroupActive(columns) ? "text-[#0052CC] font-semibold" : "text-gray-600";
+    isGroupActive(columns) ? "text-[#183670] font-semibold" : "text-gray-600";
 
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col">
       {/* Top Announcement Bar */}
-      <div className="bg-[#0052CC] text-white py-1 md:py-1.5 px-3 sm:px-6 lg:px-12 flex flex-row items-center justify-between relative min-h-[36px] overflow-hidden">
+      <div className="bg-[#183670] text-white py-1 md:py-1.5 px-3 sm:px-6 lg:px-12 flex flex-row items-center justify-between relative min-h-[36px] overflow-hidden">
         {/* Left Spacer */}
         <div className="w-16 md:w-20 shrink-0 relative z-10"></div>
         
         {/* Absolute Centered Text */}
         <div className="absolute left-1/2 -translate-x-1/2 w-[60%] sm:w-[70%] flex items-center justify-center gap-2">
           <span className="text-[10px] sm:text-[11px] md:text-sm font-bold text-center truncate">🎉 Founding Member Program Open <span className="hidden sm:inline">– Limited Spots Available</span></span>
-          <Link href="/auth/signup" className="hidden lg:inline-flex shrink-0 items-center gap-1 bg-white text-[#0052CC] px-3 py-0.5 rounded-full text-xs hover:bg-blue-50 transition-colors">
+          <Link href="/auth/signup" className="hidden lg:inline-flex shrink-0 items-center gap-1 bg-white text-[#183670] px-3 py-0.5 rounded-full text-xs hover:bg-blue-50 transition-colors">
             Join Now <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </Link>
         </div>
@@ -98,7 +98,7 @@ export default function Navbar() {
                       <ul className="flex flex-col gap-3">
                         {col.items.map((item, iIdx) => (
                           <li key={iIdx}>
-                            <Link href={item.href} className={`flex items-center gap-2 hover:text-[#0052CC] transition-colors ${pathname === item.href ? 'text-[#0052CC] font-bold' : 'text-gray-600 font-medium'}`}>
+                            <Link href={item.href} className={`flex items-center gap-2 hover:text-[#183670] transition-colors ${pathname === item.href ? 'text-[#183670] font-bold' : 'text-gray-600 font-medium'}`}>
                               <span className="truncate">{item.name}</span>
                               {item.badge && (
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${item.badgeColor || 'bg-gray-100 text-gray-600'}`}>
@@ -122,24 +122,24 @@ export default function Navbar() {
           {/* Right Desktop Auth Actions */}
           <div className="hidden lg:flex items-center gap-3 xl:gap-4 text-[13px] xl:text-sm font-semibold whitespace-nowrap shrink-0">
             {/* Search Button */}
-            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="p-2 text-gray-500 hover:text-[#0052CC] transition-colors rounded-full hover:bg-gray-50 focus:outline-none">
+            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="p-2 text-gray-500 hover:text-[#183670] transition-colors rounded-full hover:bg-gray-50 focus:outline-none">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </button>
             
 
              {user ? (
                 <div className="flex items-center gap-4">
-                   <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-[#0052CC] font-semibold transition-all">
+                   <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-[#183670] font-semibold transition-all">
                      Dashboard
                    </Link>
                    <button onClick={() => logout()} className="text-red-600 hover:text-red-700 font-semibold">Logout</button>
                 </div>
             ) : (
               <>
-                <Link href="/auth/login" className="px-4 py-2 text-gray-600 hover:text-[#0052CC] transition-all">
+                <Link href="/auth/login" className="px-4 py-2 text-gray-600 hover:text-[#183670] transition-all">
                   Login
                 </Link>
-                <Link href="/auth/signup" className="rounded bg-[#0052CC] px-5 py-2 text-white hover:bg-[#0043a4] shadow-sm transition-all flex items-center gap-1">
+                <Link href="/auth/signup" className="rounded bg-[#183670] px-5 py-2 text-white hover:bg-[#0B1B3D] shadow-sm transition-all flex items-center gap-1">
                   Get Started Free
                 </Link>
               </>
@@ -204,13 +204,13 @@ export default function Navbar() {
              
              {user ? (
                 <div className="flex flex-col gap-3">
-                  <Link href="/dashboard" className="text-center rounded border border-[#0052CC] py-2.5 text-[#0052CC] font-bold">Dashboard</Link>
+                  <Link href="/dashboard" className="text-center rounded border border-[#183670] py-2.5 text-[#183670] font-bold">Dashboard</Link>
                   <button onClick={() => logout()} className="text-center rounded bg-red-600 py-2.5 text-white font-bold">Logout</button>
                 </div>
              ) : (
                <div className="flex flex-col gap-3">
-                 <Link href="/auth/login" className="text-center rounded border border-[#0052CC] py-2.5 text-[#0052CC] font-bold">Login</Link>
-                 <Link href="/auth/signup" className="text-center rounded bg-[#0052CC] py-2.5 text-white font-bold">Get Started Free</Link>
+                 <Link href="/auth/login" className="text-center rounded border border-[#183670] py-2.5 text-[#183670] font-bold">Login</Link>
+                 <Link href="/auth/signup" className="text-center rounded bg-[#183670] py-2.5 text-white font-bold">Get Started Free</Link>
                </div>
              )}
           </div>
@@ -227,7 +227,7 @@ export default function Navbar() {
                 className="w-full bg-transparent border-none focus:outline-none focus:ring-0 py-3 px-3 text-sm text-gray-700"
                 autoFocus
               />
-              <button className="text-sm font-bold text-white bg-[#0052CC] px-5 py-2 rounded hover:bg-blue-700 transition-colors shrink-0">Search</button>
+              <button className="text-sm font-bold text-white bg-[#183670] px-5 py-2 rounded hover:bg-[#0B1B3D] transition-colors shrink-0">Search</button>
             </div>
           </div>
         )}

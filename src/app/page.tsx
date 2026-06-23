@@ -174,7 +174,7 @@ export default async function Home() {
       {/* Stats Banner */}
       <section className="w-full">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#0B1B3D] rounded-2xl py-10 px-8 text-white flex flex-col md:flex-row flex-wrap items-center justify-between gap-8 md:gap-4 shadow-xl">
+          <div className="bg-[#183670] rounded-2xl py-10 px-8 text-white flex flex-col md:flex-row flex-wrap items-center justify-between gap-8 md:gap-4 shadow-xl">
             <div className="flex items-center gap-4">
               <Users className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
               <div>
