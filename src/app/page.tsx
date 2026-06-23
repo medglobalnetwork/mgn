@@ -265,21 +265,20 @@ export default async function Home() {
       {/* Bottom CTA Banner */}
       <section className="w-full pb-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#0052CC] rounded-2xl relative overflow-hidden flex flex-col md:flex-row items-center shadow-xl">
-            <div className="p-10 md:p-14 md:w-3/5 relative z-10">
-              <h2 className="text-3xl font-bold text-white mb-4">
+          <div className="bg-[#183670] rounded-xl relative overflow-hidden flex flex-col md:flex-row items-center shadow-lg min-h-[220px]">
+            <div className="p-8 md:p-12 md:w-3/5 relative z-10">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                 Ready to Connect, Grow & Thrive?
               </h2>
-              <p className="text-blue-100 mb-8 max-w-md">
+              <p className="text-blue-100/90 mb-6 max-w-md text-sm leading-relaxed">
                 Join thousands of healthcare professionals and organizations building the future together.
               </p>
-              <Link href="/auth/signup" className="inline-block bg-white text-[#0052CC] px-6 py-3 rounded-md font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm">
+              <Link href="/auth/signup" className="inline-block bg-white text-[#183670] px-6 py-2.5 rounded-md font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm">
                 Join MGN Today - It's Free
               </Link>
             </div>
-            <div className="hidden md:block absolute right-0 bottom-0 top-0 w-2/5 overflow-hidden">
-               {/* Team picture placeholder */}
-               <Image src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=800&auto=format&fit=crop" alt="Professionals" fill className="object-cover opacity-90 mix-blend-overlay" unoptimized />
+            <div className="hidden md:block absolute right-0 bottom-0 top-0 w-[55%] z-0">
+               <Image src="/ready.svg" alt="Professionals" fill className="object-contain object-right-bottom pr-10" unoptimized />
             </div>
           </div>
         </div>
