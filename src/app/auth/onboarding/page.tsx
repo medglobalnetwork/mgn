@@ -224,10 +224,27 @@ function OnboardingContent() {
     }
   };
 
-  const updateOtp = (index: number, value: string) => {
+  const handleOtpChange = (index: number, value: string) => {
+    const val = value.substring(value.length - 1);
     const newOtp = [...otpArray];
-    newOtp[index] = value.substring(value.length - 1); // Only keep last char if they type fast
+    newOtp[index] = val;
     setOtpArray(newOtp);
+
+    if (val && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otpArray[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    } else if (e.key === "Enter") {
+      if (otpArray.join("").length === 6 && !isProcessingOtp) {
+        handleVerifyOtp();
+      }
+    }
   };
 
   return (
@@ -294,10 +311,12 @@ function OnboardingContent() {
                     {otpArray.map((digit, i) => (
                       <input 
                         key={i}
+                        id={`otp-${i}`}
                         type="text" 
                         maxLength={1}
                         value={digit}
-                        onChange={(e) => updateOtp(i, e.target.value)}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
                         className="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all bg-gray-50 focus:bg-white"
                       />
                     ))}
