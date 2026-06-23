@@ -1,158 +1,113 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { 
-  BookOpen, Stethoscope, Activity, HeartPulse, Smile, Pill, Microscope, GraduationCap, 
-  Building2, School, FlaskConical, Settings, Rocket, Users, ChevronRight
+import Link from "next/link";
+import Image from "next/image";
+import {
+  User, CheckCircle, Briefcase, GraduationCap, Building, Star, Award, Gift, ArrowRight, Activity, Cpu, Heart, CheckSquare, Settings, Users
 } from "lucide-react";
 
-const getCategoryIcon = (cat: string) => {
-  const iconProps = { className: "w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" };
-  const activeIconProps = { className: "w-5 h-5 text-blue-600" };
-  
-  const renderIcon = (IconCmp: any, isActive: boolean) => (
-    <IconCmp {...(isActive ? activeIconProps : iconProps)} />
-  );
-
-  return (isActive: boolean) => {
-    switch (cat) {
-      case "Medical Student": return renderIcon(BookOpen, isActive);
-      case "Doctor": return renderIcon(Stethoscope, isActive);
-      case "Physiotherapist": return renderIcon(Activity, isActive);
-      case "Nurse": return renderIcon(HeartPulse, isActive);
-      case "Dentist": return renderIcon(Smile, isActive);
-      case "Pharmacist": return renderIcon(Pill, isActive);
-      case "Researcher": return renderIcon(Microscope, isActive);
-      case "Faculty": return renderIcon(GraduationCap, isActive);
-      case "Hospital": return renderIcon(Building2, isActive);
-      case "Clinic": return renderIcon(Activity, isActive);
-      case "Medical College": return renderIcon(GraduationCap, isActive);
-      case "University": return renderIcon(School, isActive);
-      case "Research Institute": return renderIcon(FlaskConical, isActive);
-      case "Pharma Company": return renderIcon(Pill, isActive);
-      case "Medical Device": return renderIcon(Settings, isActive);
-      case "Healthcare Startup": return renderIcon(Rocket, isActive);
-      default: return renderIcon(Users, isActive);
-    }
-  };
-};
-
-// --- STEPS ENUM ---
 type OnboardingStep = 
-  | "VERIFY_OTP"
+  | "WELCOME"
   | "ACCOUNT_TYPE"
-  | "CATEGORY_SELECTION"
-  | "BASIC_PROFILE"
+  | "PERSONAL_PROFILE"
+  | "PROFESSIONAL_INFO"
+  | "INTERESTS"
+  | "FOUNDING_MEMBER"
+  | "PROFILE_STRENGTH"
   | "SUCCESS";
 
-function OnboardingContent() {
-  const { user, loading, setupRecaptcha, sendPhoneOtp, verifyPhoneOtp } = useAuth();
+export default function OnboardingPage() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // State
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>("WELCOME");
   
-  // Default step logic:
-  // In a real app, you would fetch the user's progress from the Rust API / Supabase here
-  // and set the initial step accordingly. For now, we start at the beginning or a requested step.
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>("ACCOUNT_TYPE");
-  const [accountType, setAccountType] = useState<"individual" | "organization" | null>(null);
-  const [category, setCategory] = useState<string>("");
-  const [phoneSent, setPhoneSent] = useState(false);
-
-  // Phone Auth State
-  const [countryCode, setCountryCode] = useState("+91");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otpArray, setOtpArray] = useState(["", "", "", "", "", ""]);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
-  const [otpError, setOtpError] = useState("");
-  const [isProcessingOtp, setIsProcessingOtp] = useState(false);
-  const [roleCounts, setRoleCounts] = useState<Record<string, number>>({});
-
-  // Profile State
+  // Data State
+  const [accountType, setAccountType] = useState<string>("");
+  const [name, setName] = useState("");
   const [country, setCountry] = useState("India");
   const [city, setCity] = useState("");
   const [headline, setHeadline] = useState("");
-  const [bio, setBio] = useState("");
+  
+  // Professional Details
+  const [college, setCollege] = useState("");
+  const [course, setCourse] = useState("");
+  const [year, setYear] = useState("");
+  const [skills, setSkills] = useState("");
+  const [specialization, setSpecialization] = useState("");
+  const [company, setCompany] = useState("");
+  const [designation, setDesignation] = useState("");
+  
+  // Interests
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  
+  // System State
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generatedReferral, setGeneratedReferral] = useState("");
+  const [referralCodeInput, setReferralCodeInput] = useState("");
 
-  // Fetch real counts from Supabase
-  useEffect(() => {
-    async function fetchCounts() {
-      const { data, error } = await supabase.from('professional_identities').select('identity_type');
-      if (data && !error) {
-        const counts: Record<string, number> = {};
-        data.forEach((row: any) => {
-          const cat = row.identity_type;
-          counts[cat] = (counts[cat] || 0) + 1;
-        });
-        setRoleCounts(counts);
-      }
-    }
-    fetchCounts();
-  }, []);
-
-  useEffect(() => {
-    if (currentStep === "VERIFY_OTP") {
-      try {
-        setupRecaptcha("recaptcha-container");
-      } catch (err) {
-        console.warn("Recaptcha setup skipped or failed", err);
-      }
-    }
-  }, [currentStep, setupRecaptcha]);
+  const INTEREST_OPTIONS = [
+    "Jobs", "Networking", "Learning", "Research", "Marketplace", "Events", "Mentorship", "Clinical Discussions", "Volunteering"
+  ];
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
+    } else if (user && !name) {
+      setName(user.displayName || "");
     }
   }, [user, loading, router]);
 
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
 
-  // --- RENDER HELPERS ---
-  const renderStepIndicator = () => {
-    const steps = ["ACCOUNT_TYPE", "CATEGORY_SELECTION", "BASIC_PROFILE", "SUCCESS"];
-    const currentIndex = steps.indexOf(currentStep);
-    
-    return (
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {steps.map((step, idx) => (
-          <div key={step} className="flex items-center">
-            <div className={`w-2.5 h-2.5 rounded-full ${idx <= currentIndex ? "bg-blue-600" : "bg-gray-200"}`} />
-            {idx < steps.length - 1 && (
-              <div className={`w-8 h-0.5 mx-1 ${idx < currentIndex ? "bg-blue-600" : "bg-gray-200"}`} />
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const handleNextStep = (next: OnboardingStep) => {
+  const handleNext = (next: OnboardingStep) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setCurrentStep(next);
   };
 
+  const calculateProfileStrength = () => {
+    let score = 0;
+    if (accountType) score += 20;
+    if (name && country && city) score += 30;
+    if (college || company || specialization) score += 30;
+    if (selectedInterests.length > 0) score += 20;
+    return score;
+  };
+
   const handleFinishSetup = async () => {
-    if (!user) return;
-    
     setIsSubmitting(true);
-    setOtpError("");
     try {
+      // Create Payload matching API
+      let education = null;
+      let experience = null;
+      
+      if (accountType === "student") {
+        education = { college, course, year, skills };
+      } else {
+        experience = { company, designation, specialization, skills };
+      }
+
       const payload = {
         firebase_uid: user.uid,
         email: user.email || "",
-        phone: `${countryCode}${phoneNumber}`,
-        account_type: accountType || "individual",
-        category: category,
-        name: user.displayName || "MGN User",
+        phone: user.phoneNumber || "",
+        account_type: accountType === "organization" ? "organization" : "individual",
+        category: accountType,
+        name: name || user.displayName || "MGN User",
         country,
         city,
         headline,
-        bio
+        bio: "",
+        interests: selectedInterests,
+        education,
+        experience,
+        referred_by: referralCodeInput
       };
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -163,310 +118,411 @@ function OnboardingContent() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to save profile on backend.");
+        throw new Error("Failed to save profile");
       }
 
-      localStorage.setItem("mgn_onboarding_completed", "true");
-      handleNextStep("SUCCESS");
-    } catch (err: any) {
-      setOtpError(err.message || "Failed to finalize setup");
-      window.scrollTo(0, 0);
+      // Generate a mock referral code for the UI
+      const namePart = (name || "MGN").split(" ")[0].toUpperCase().replace(/[^a-zA-Z0-9]/g, '');
+      const uidPart = user.uid.substring(0, 4).toUpperCase();
+      setGeneratedReferral(`${namePart}${uidPart}`);
+      
+      handleNext("SUCCESS");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSendOtp = async () => {
-    if (!phoneNumber) return;
-    try {
-      setOtpError("");
-      setIsProcessingOtp(true);
-      const fullPhone = `${countryCode}${phoneNumber}`;
-      const result = await sendPhoneOtp(fullPhone);
-      setConfirmationResult(result);
-      setPhoneSent(true);
-    } catch (err: any) {
-      console.error("Firebase Phone Auth Error:", err);
-      // Fallback for local development when Firebase config blocks SMS
-      if (err.message.includes("auth/invalid-app-credential") || err.message.includes("reCAPTCHA") || process.env.NODE_ENV === "development") {
-        console.warn("Bypassing Firebase Phone Auth for local development.");
-        setConfirmationResult(null);
-        setPhoneSent(true);
-        setOtpError("Firebase restricted. Dev mode bypass activated. Enter any 6 digits.");
-      } else {
-        setOtpError(err.message || "Failed to send OTP.");
-      }
-    } finally {
-      setIsProcessingOtp(false);
-    }
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests(prev => 
+      prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]
+    );
   };
 
-  const handleVerifyOtp = async () => {
-    try {
-      setOtpError("");
-      setIsProcessingOtp(true);
-      const otpCode = otpArray.join("");
-      if (otpCode.length !== 6) throw new Error("Please enter all 6 digits.");
-      
-      if (confirmationResult) {
-        await verifyPhoneOtp(confirmationResult, otpCode);
-      } else {
-        // Fallback for dev mode testing if Recaptcha was bypassed manually
-        console.warn("No confirmation result. Bypassing OTP for dev.");
-      }
-      
-      handleNextStep("ACCOUNT_TYPE");
-    } catch (err: any) {
-      setOtpError(err.message || "Invalid OTP.");
-    } finally {
-      setIsProcessingOtp(false);
-    }
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
-    const val = value.substring(value.length - 1);
-    const newOtp = [...otpArray];
-    newOtp[index] = val;
-    setOtpArray(newOtp);
-
-    if (val && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      if (nextInput) nextInput.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otpArray[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`);
-      if (prevInput) prevInput.focus();
-    } else if (e.key === "Enter") {
-      if (otpArray.join("").length === 6 && !isProcessingOtp) {
-        handleVerifyOtp();
-      }
-    }
+  const getStepProgress = () => {
+    const steps = ["WELCOME", "ACCOUNT_TYPE", "PERSONAL_PROFILE", "PROFESSIONAL_INFO", "INTERESTS", "FOUNDING_MEMBER", "PROFILE_STRENGTH", "SUCCESS"];
+    const index = steps.indexOf(currentStep);
+    return Math.max(0, (index / (steps.length - 1)) * 100);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <Image src="/logo.svg" alt="MGN Logo" width={200} height={40} className="h-8 w-auto mb-6" />
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Left Panel - Hidden on Mobile */}
+      <div className="hidden lg:flex lg:w-5/12 bg-[#0B1B3D] text-white flex-col justify-between relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-full h-full opacity-10 bg-[url('/grid-pattern.svg')] bg-repeat z-0"></div>
+        <div className="p-12 relative z-10 flex-grow flex flex-col justify-center">
+          <Link href="/">
+            <img src="/logo-white.svg" alt="MGN Logo" className="h-10 mb-16" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <h1 className="text-3xl font-black mb-1 leading-tight text-white" style={{ display: 'none' }} id="fallback-logo">MGN</h1>
+          </Link>
+          
+          <h1 className="text-4xl xl:text-5xl font-black mb-6 leading-tight">
+            Join India's Largest Healthcare Network
+          </h1>
+          <p className="text-blue-200 text-lg mb-12">
+            Connect with professionals, discover opportunities, and shape the future of healthcare.
+          </p>
+
+          <div className="space-y-8">
+            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+              <div className="bg-[#0052CC] p-3 rounded-lg"><Users className="w-6 h-6 text-white" /></div>
+              <div>
+                <h3 className="text-2xl font-bold">10,000+</h3>
+                <p className="text-blue-200 text-sm">Healthcare Professionals</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+              <div className="bg-[#00A67E] p-3 rounded-lg"><Briefcase className="w-6 h-6 text-white" /></div>
+              <div>
+                <h3 className="text-2xl font-bold">2,000+</h3>
+                <p className="text-blue-200 text-sm">Job Opportunities</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+              <div className="bg-yellow-500 p-3 rounded-lg"><GraduationCap className="w-6 h-6 text-white" /></div>
+              <div>
+                <h3 className="text-2xl font-bold">500+</h3>
+                <p className="text-blue-200 text-sm">Learning Resources</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-8 text-xs text-blue-300 relative z-10 opacity-70">
+          © 2026 Med Global Network. 100% Verified Community.
+        </div>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-white py-8 px-4 shadow-xl shadow-blue-900/5 sm:rounded-2xl sm:px-10 border border-gray-100">
-          
-          {currentStep !== "SUCCESS" && renderStepIndicator()}
+      {/* Right Panel - Content */}
+      <div className="w-full lg:w-7/12 flex flex-col min-h-screen relative">
+        {/* Progress Bar */}
+        {currentStep !== "WELCOME" && currentStep !== "SUCCESS" && (
+          <div className="w-full bg-gray-200 h-1.5 absolute top-0 left-0 z-50">
+            <div 
+              className="bg-[#0052CC] h-full transition-all duration-500 ease-out"
+              style={{ width: `${getStepProgress()}%` }}
+            ></div>
+          </div>
+        )}
 
-          {/* STEP 1: ACCOUNT TYPE */}
-          {currentStep === "ACCOUNT_TYPE" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-[#0B1B3D] tracking-tight">Who are you?</h2>
-                <p className="text-sm text-gray-500 mt-2">Select your account type to personalize your experience.</p>
-              </div>
+        <div className="flex-grow flex flex-col justify-center px-6 py-12 sm:px-12 xl:px-24">
+          <div className="max-w-xl w-full mx-auto">
 
-              <div className="grid grid-cols-2 gap-4 mb-8">
+            {/* STEP 1: WELCOME */}
+            {currentStep === "WELCOME" && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                  <span className="text-4xl">🎉</span>
+                </div>
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-4">Welcome to MGN</h2>
+                <p className="text-lg text-gray-600 mb-8">India's Healthcare Professional Network</p>
+                
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8 text-left space-y-4">
+                  <div className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle className="w-5 h-5 text-[#00A67E]" /> Build your professional network</div>
+                  <div className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle className="w-5 h-5 text-[#00A67E]" /> Discover exclusive jobs</div>
+                  <div className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle className="w-5 h-5 text-[#00A67E]" /> Access learning hubs</div>
+                  <div className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle className="w-5 h-5 text-[#00A67E]" /> Buy & sell in the marketplace</div>
+                </div>
+
                 <button 
-                  onClick={() => setAccountType("individual")}
-                  className={`flex flex-col items-center justify-center p-6 border-2 rounded-2xl transition-all ${accountType === "individual" ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"}`}
+                  onClick={() => handleNext("ACCOUNT_TYPE")}
+                  className="w-full bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <svg className={`w-10 h-10 mb-3 transition-colors ${accountType === "individual" ? "text-blue-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                  <span className={`font-bold ${accountType === "individual" ? "text-blue-700" : "text-gray-700"}`}>Individual</span>
-                </button>
-                <button 
-                  onClick={() => setAccountType("organization")}
-                  className={`flex flex-col items-center justify-center p-6 border-2 rounded-2xl transition-all ${accountType === "organization" ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"}`}
-                >
-                  <svg className={`w-10 h-10 mb-3 transition-colors ${accountType === "organization" ? "text-blue-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                  <span className={`font-bold ${accountType === "organization" ? "text-blue-700" : "text-gray-700"}`}>Organization</span>
+                  Let's Get Started <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
+            )}
 
-              <button 
-                disabled={!accountType}
-                onClick={() => handleNextStep("CATEGORY_SELECTION")}
-                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
-            </div>
-          )}
+            {/* STEP 2: ROLE SELECTION */}
+            {currentStep === "ACCOUNT_TYPE" && (
+              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-2">How do you identify?</h2>
+                <p className="text-gray-500 mb-8">Select your primary role on the platform.</p>
 
-          {/* STEP 3: CATEGORY SELECTION */}
-          {currentStep === "CATEGORY_SELECTION" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-[#0B1B3D] tracking-tight">Select your role</h2>
-                <p className="text-sm text-gray-500 mt-2">Which category best describes you?</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-8">
-                {accountType === "individual" ? (
-                  ["Medical Student", "Doctor", "Physiotherapist", "Nurse", "Dentist", "Pharmacist", "Researcher", "Faculty", "Other"].map(cat => (
-                    <button 
-                      key={cat}
-                      onClick={() => setCategory(cat)}
-                      className={`p-3 text-sm font-medium border rounded-xl transition-all text-left flex justify-between items-center group ${category === cat ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50"}`}
+                <div className="space-y-4">
+                  {[
+                    { id: "professional", icon: Activity, title: "Healthcare Professional", desc: "Doctors, Nurses, Paramedics, etc." },
+                    { id: "student", icon: GraduationCap, title: "Student", desc: "Medical, Nursing, Pharmacy students" },
+                    { id: "organization", icon: Building, title: "Organization", desc: "Hospitals, Clinics, Institutions" },
+                    { id: "recruiter", icon: Users, title: "Recruiter", desc: "Hiring for healthcare roles" },
+                    { id: "business", icon: Briefcase, title: "Business", desc: "Healthcare products & services" }
+                  ].map(role => (
+                    <button
+                      key={role.id}
+                      onClick={() => { setAccountType(role.id); handleNext("PERSONAL_PROFILE"); }}
+                      className="w-full flex items-center p-5 rounded-2xl border-2 border-gray-100 bg-white hover:border-[#0052CC] hover:bg-blue-50 transition-all group text-left shadow-sm hover:shadow-md"
                     >
-                      <div className="flex items-center gap-3">
-                        {getCategoryIcon(cat)(category === cat)}
-                        <span>{cat}</span>
+                      <div className="w-12 h-12 rounded-xl bg-blue-100 text-[#0052CC] flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                        <role.icon className="w-6 h-6" />
                       </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${category === cat ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500 group-hover:bg-blue-50"}`}>
-                        {roleCounts[cat] || 0}
-                      </span>
+                      <div>
+                        <h3 className="font-bold text-[#0B1B3D] text-lg">{role.title}</h3>
+                        <p className="text-sm text-gray-500">{role.desc}</p>
+                      </div>
                     </button>
-                  ))
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: PERSONAL PROFILE */}
+            {currentStep === "PERSONAL_PROFILE" && (
+              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-2">Personal Profile</h2>
+                <p className="text-gray-500 mb-8">Tell us a bit about yourself.</p>
+
+                <div className="space-y-5">
+                  <div className="flex justify-center mb-6">
+                     <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 overflow-hidden relative cursor-pointer hover:bg-gray-50 transition-colors">
+                        {user.photoURL ? (
+                          <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="text-3xl">+</span>
+                            <span className="text-[10px] font-medium">Photo</span>
+                          </div>
+                        )}
+                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="Dr. Sarah Smith" />
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-1/2">
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Country</label>
+                      <input type="text" value={country} onChange={e => setCountry(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" />
+                    </div>
+                    <div className="w-1/2">
+                      <label className="block text-sm font-bold text-gray-700 mb-1">City</label>
+                      <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="Mumbai" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Professional Headline</label>
+                    <input type="text" value={headline} onChange={e => setHeadline(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="e.g. Cardiologist at AIIMS | BPT Student" />
+                  </div>
+
+                  <button 
+                    onClick={() => handleNext("PROFESSIONAL_INFO")}
+                    disabled={!name || !city || !headline}
+                    className="w-full mt-8 bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: PROFESSIONAL INFO */}
+            {currentStep === "PROFESSIONAL_INFO" && (
+              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-2">Professional Details</h2>
+                <p className="text-gray-500 mb-8">Customize your experience based on your background.</p>
+
+                {accountType === "student" ? (
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">College / University</label>
+                      <input type="text" value={college} onChange={e => setCollege(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="Medical College Name" />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="w-2/3">
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Course</label>
+                        <input type="text" value={course} onChange={e => setCourse(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="MBBS, BDS, etc." />
+                      </div>
+                      <div className="w-1/3">
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Year</label>
+                        <input type="text" value={year} onChange={e => setYear(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="e.g. 2024" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Key Skills / Interests</label>
+                      <input type="text" value={skills} onChange={e => setSkills(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="Anatomy, Research..." />
+                    </div>
+                  </div>
+                ) : accountType === "recruiter" || accountType === "business" ? (
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Company / Organization</label>
+                      <input type="text" value={company} onChange={e => setCompany(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="Hospital or Company Name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Designation</label>
+                      <input type="text" value={designation} onChange={e => setDesignation(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="HR Manager, CEO..." />
+                    </div>
+                  </div>
                 ) : (
-                  ["Hospital", "Clinic", "Medical College", "University", "Research Institute", "Pharma Company", "Medical Device", "Healthcare Startup", "Other"].map(cat => (
-                    <button 
-                      key={cat}
-                      onClick={() => setCategory(cat)}
-                      className={`p-3 text-sm font-medium border rounded-xl transition-all text-left flex justify-between items-center group ${category === cat ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50"}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {getCategoryIcon(cat)(category === cat)}
-                        <span>{cat}</span>
-                      </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${category === cat ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500 group-hover:bg-blue-50"}`}>
-                        {roleCounts[cat] || 0}
-                      </span>
-                    </button>
-                  ))
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Specialization</label>
+                      <input type="text" value={specialization} onChange={e => setSpecialization(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="e.g. Neurology, Pediatrics" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Current Organization</label>
+                      <input type="text" value={company} onChange={e => setCompany(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="Hospital or Clinic Name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Years of Experience</label>
+                      <input type="text" value={experience} onChange={e => setExperience(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="e.g. 5 Years" />
+                    </div>
+                  </div>
                 )}
-              </div>
 
-              <div className="flex gap-4">
                 <button 
-                  onClick={() => handleNextStep("ACCOUNT_TYPE")}
-                  className="w-1/3 flex justify-center py-3.5 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all"
-                >
-                  Back
-                </button>
-                <button 
-                  disabled={!category}
-                  onClick={() => handleNextStep("BASIC_PROFILE")}
-                  className="w-2/3 flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => handleNext("INTERESTS")}
+                  className="w-full mt-8 bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors"
                 >
                   Continue
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* STEP 4: BASIC PROFILE */}
-          {currentStep === "BASIC_PROFILE" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-[#0B1B3D] tracking-tight">Complete Profile</h2>
-                <p className="text-sm text-gray-500 mt-2">Almost there! Add a few details to get started.</p>
-              </div>
+            {/* STEP 5: INTERESTS */}
+            {currentStep === "INTERESTS" && (
+              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-2">What are your goals?</h2>
+                <p className="text-gray-500 mb-8">Select interests to personalize your feed and recommendations.</p>
 
-              <div className="flex justify-center mb-6">
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-blue-50 border-2 border-dashed border-blue-200 flex items-center justify-center overflow-hidden group cursor-pointer hover:border-blue-400 transition-all">
-                     <span className="text-3xl text-blue-300 group-hover:text-blue-500">+</span>
-                  </div>
-                  <div className="text-center mt-2 text-xs font-medium text-gray-500">Upload Photo</div>
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-8">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Country</label>
-                    <select 
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                <div className="flex flex-wrap gap-3">
+                  {INTEREST_OPTIONS.map(interest => (
+                    <button
+                      key={interest}
+                      onClick={() => toggleInterest(interest)}
+                      className={`px-5 py-3 rounded-full border-2 font-semibold text-sm transition-all ${
+                        selectedInterests.includes(interest) 
+                          ? "bg-blue-50 border-[#0052CC] text-[#0052CC]" 
+                          : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                      }`}
                     >
-                      <option value="India">India</option>
-                      <option value="United States">United States</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">City</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Mumbai" 
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" 
-                    />
+                      {selectedInterests.includes(interest) && "✓ "}{interest}
+                    </button>
+                  ))}
+                </div>
+
+                <button 
+                  onClick={() => handleNext("FOUNDING_MEMBER")}
+                  disabled={selectedInterests.length === 0}
+                  className="w-full mt-10 bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  Continue
+                </button>
+              </div>
+            )}
+
+            {/* STEP 6: FOUNDING MEMBER & REFERRAL */}
+            {currentStep === "FOUNDING_MEMBER" && (
+              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                <div className="bg-gradient-to-br from-[#0B1B3D] to-[#0052CC] rounded-3xl p-8 text-white mb-8 shadow-lg relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-10 -mb-10"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold mb-4">EARLY ACCESS</div>
+                    <h2 className="text-3xl font-black mb-2">You're a Founding Member 🎉</h2>
+                    <p className="text-blue-100 text-sm mb-6">You are among the first healthcare professionals joining MGN.</p>
+                    
+                    <ul className="space-y-2 mb-6 text-sm font-medium">
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-[#00A67E]" /> Founding Member Badge</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-[#00A67E]" /> 90 Days Premium Access</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-[#00A67E]" /> Priority Verification</li>
+                    </ul>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Headline</label>
+                <div className="mb-8">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Did someone invite you? (Optional)</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. BPT Student | Founder at MGN" 
-                    value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" 
+                    value={referralCodeInput} 
+                    onChange={e => setReferralCodeInput(e.target.value.toUpperCase())} 
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none uppercase" 
+                    placeholder="ENTER REFERRAL CODE" 
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Bio</label>
-                  <textarea 
-                    rows={3} 
-                    placeholder="Tell us a bit about yourself..." 
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all resize-none"
-                  ></textarea>
+
+                <button 
+                  onClick={() => handleNext("PROFILE_STRENGTH")}
+                  className="w-full bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors"
+                >
+                  Continue
+                </button>
+              </div>
+            )}
+
+            {/* STEP 7: PROFILE STRENGTH */}
+            {currentStep === "PROFILE_STRENGTH" && (
+              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-2">Profile Strength</h2>
+                <p className="text-gray-500 mb-8">A complete profile attracts more opportunities.</p>
+
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-black text-2xl text-[#0B1B3D]">{calculateProfileStrength()}%</span>
+                    <span className="text-sm font-bold text-[#00A67E] bg-green-50 px-3 py-1 rounded-full">Intermediate</span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-100 h-2.5 rounded-full mb-8 overflow-hidden">
+                    <div className="bg-[#00A67E] h-full" style={{ width: `${calculateProfileStrength()}%` }}></div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-800"><CheckSquare className="w-5 h-5 text-[#00A67E]" /> Account Created</div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-800"><CheckSquare className="w-5 h-5 text-[#00A67E]" /> Role Selected</div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-800"><CheckSquare className="w-5 h-5 text-[#00A67E]" /> Basic Details</div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-800"><CheckSquare className="w-5 h-5 text-[#00A67E]" /> Interests Added</div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-400"><div className="w-5 h-5 rounded border-2 border-gray-300"></div> Verify License</div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-400"><div className="w-5 h-5 rounded border-2 border-gray-300"></div> Upload Resume</div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleFinishSetup}
+                  disabled={isSubmitting}
+                  className="w-full bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors disabled:opacity-70 flex items-center justify-center"
+                >
+                  {isSubmitting ? "Saving Profile..." : "Complete Setup"}
+                </button>
+              </div>
+            )}
+
+            {/* STEP 8: FINAL SUCCESS */}
+            {currentStep === "SUCCESS" && (
+              <div className="animate-in zoom-in-95 duration-500 text-center py-8">
+                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="w-12 h-12 text-[#00A67E]" />
+                </div>
+                <h2 className="text-3xl font-black text-[#0B1B3D] mb-4">🚀 Your MGN Profile Is Ready!</h2>
+                <p className="text-lg text-gray-600 mb-8">
+                  Welcome to the community, {name.split(" ")[0]}. Let's explore what's next.
+                </p>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-8 text-left">
+                  <h3 className="font-bold text-[#0B1B3D] mb-2 flex items-center gap-2"><Gift className="w-5 h-5 text-[#0052CC]" /> Your Referral Code</h3>
+                  <p className="text-sm text-gray-600 mb-4">Invite friends to unlock premium rewards and badges.</p>
+                  <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 font-mono font-bold text-xl text-center tracking-widest text-[#0052CC]">
+                    {generatedReferral}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button onClick={() => router.push("/dashboard")} className="w-full bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 shadow-md">
+                    Go To Dashboard
+                  </button>
+                  <button onClick={() => router.push("/network")} className="w-full bg-white text-[#0052CC] border-2 border-[#0052CC] py-3.5 rounded-xl font-bold text-lg hover:bg-blue-50">
+                    Explore Network
+                  </button>
                 </div>
               </div>
+            )}
 
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => handleNextStep("CATEGORY_SELECTION")}
-                  className="w-1/3 flex justify-center py-3.5 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all"
-                >
-                  Back
-                </button>
-                <button 
-                  disabled={isSubmitting}
-                  onClick={handleFinishSetup}
-                  className="w-2/3 flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-70"
-                >
-                  {isSubmitting ? "Saving..." : "Finish Setup"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: SUCCESS */}
-          {currentStep === "SUCCESS" && (
-            <div className="animate-in zoom-in-95 duration-500 text-center py-8">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-              </div>
-              <h2 className="text-3xl font-black text-[#0B1B3D] tracking-tight mb-3">Welcome to MGN!</h2>
-              <p className="text-gray-500 mb-10 max-w-sm mx-auto">Your account has been created successfully. Let's start exploring your medical network.</p>
-              
-              <Link 
-                href="/dashboard"
-                className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-0.5"
-              >
-                Go To Dashboard
-              </Link>
-            </div>
-          )}
-
+          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function OnboardingPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
-      <OnboardingContent />
-    </Suspense>
   );
 }
