@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { siteConfig } from "@/config/site";
-import { Linkedin, Instagram, Youtube, Twitter } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -58,16 +58,13 @@ export default function Footer() {
             
             <div className="flex gap-3 mt-4">
                <a href={siteConfig.links.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0052CC] transition-colors">
-                 <Linkedin className="w-5 h-5 fill-current" />
+                 <Image src="/icons/linkedin.svg" alt="LinkedIn" width={20} height={20} className="object-contain" />
                </a>
                <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0052CC] transition-colors">
-                 <Instagram className="w-5 h-5" />
+                 <Image src="/icons/instagram.svg" alt="Instagram" width={20} height={20} className="object-contain" />
                </a>
                <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0052CC] transition-colors">
-                 <Youtube className="w-5 h-5 fill-current" />
-               </a>
-               <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0052CC] transition-colors">
-                 <Twitter className="w-5 h-5 fill-current" />
+                 <Image src="/icons/youtube.svg" alt="YouTube" width={20} height={20} className="object-contain" />
                </a>
             </div>
           </div>
