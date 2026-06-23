@@ -97,7 +97,7 @@ export default async function Home() {
             </div>
             <div className="flex items-center gap-2">
               <Gift className="w-5 h-5 text-green-400 shrink-0" />
-              <span className="font-medium text-sm">1 Year Free Premium</span>
+              <span className="font-medium text-sm">6 Months Free Premium</span>
             </div>
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-400 shrink-0" />
