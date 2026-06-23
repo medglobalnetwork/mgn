@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,7 +50,7 @@ type OnboardingStep =
   | "BASIC_PROFILE"
   | "SUCCESS";
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const { user, loading, setupRecaptcha, sendPhoneOtp, verifyPhoneOtp } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -516,5 +516,13 @@ export default function OnboardingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }
