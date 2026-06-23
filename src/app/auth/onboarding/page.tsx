@@ -155,7 +155,8 @@ function OnboardingContent() {
         bio
       };
 
-      const res = await fetch("http://localhost:8000/auth/onboarding", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/auth/onboarding`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
