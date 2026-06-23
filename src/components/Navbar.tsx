@@ -127,11 +127,13 @@ export default function Navbar() {
             </button>
             
 
-            {user ? (
-               <div className="flex items-center gap-4">
-                  <span className="text-gray-600 truncate max-w-[150px]">{user.displayName || user.email}</span>
-                  <button onClick={() => logout()} className="text-red-600 hover:text-red-700">Logout</button>
-               </div>
+             {user ? (
+                <div className="flex items-center gap-4">
+                   <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-[#0052CC] font-semibold transition-all">
+                     Dashboard
+                   </Link>
+                   <button onClick={() => logout()} className="text-red-600 hover:text-red-700 font-semibold">Logout</button>
+                </div>
             ) : (
               <>
                 <Link href="/auth/login" className="px-4 py-2 text-gray-600 hover:text-[#0052CC] transition-all">
@@ -201,7 +203,10 @@ export default function Navbar() {
              <hr className="my-2" />
              
              {user ? (
-                <button onClick={() => logout()} className="text-red-600 text-left font-bold">Logout</button>
+                <div className="flex flex-col gap-3">
+                  <Link href="/dashboard" className="text-center rounded border border-[#0052CC] py-2.5 text-[#0052CC] font-bold">Dashboard</Link>
+                  <button onClick={() => logout()} className="text-center rounded bg-red-600 py-2.5 text-white font-bold">Logout</button>
+                </div>
              ) : (
                <div className="flex flex-col gap-3">
                  <Link href="/auth/login" className="text-center rounded border border-[#0052CC] py-2.5 text-[#0052CC] font-bold">Login</Link>
