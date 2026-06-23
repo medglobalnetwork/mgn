@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Users, BookOpen, TrendingUp, Star, Briefcase, GraduationCap, ShoppingCart, ShieldCheck, Gift, Crown, Zap } from "lucide-react";
 import CountUp from "@/components/CountUp";
 import SplitText from "@/components/SplitText";
+import ShinyText from "@/components/ShinyText";
 import { getSupabaseServer } from "@/lib/supabase";
 
 export const revalidate = 0;
@@ -88,7 +89,9 @@ export default async function Home() {
         <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')] bg-repeat"></div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 shrink-0">
-            <h3 className="font-bold text-lg text-blue-200 uppercase tracking-wide text-center md:text-left">Early Access Benefits:</h3>
+            <h3 className="font-bold text-lg uppercase tracking-wide text-center md:text-left">
+              <ShinyText text="Early Access Benefits:" className="text-blue-200" speed={3} />
+            </h3>
           </div>
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-8 gap-y-4 flex-1">
             <div className="flex items-center gap-2">
