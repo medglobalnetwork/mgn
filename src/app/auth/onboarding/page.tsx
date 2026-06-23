@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -20,7 +20,7 @@ type OnboardingStep =
   | "PROFILE_STRENGTH"
   | "SUCCESS";
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -534,5 +534,13 @@ export default function OnboardingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-sans"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0052CC]"></div></div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }
