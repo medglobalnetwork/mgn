@@ -1,10 +1,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Users, BookOpen, TrendingUp, Star, Briefcase, GraduationCap, ShoppingCart, ShieldCheck } from "lucide-react";
+import CountUp from "@/components/CountUp";
+import { getSupabaseServer } from "@/lib/supabase";
 
 export const revalidate = 0;
 
 export default async function Home() {
+  const supabase = getSupabaseServer();
+  
+  // Fetch real counts from database
+  let professionalsCount = 0;
+  let jobsCount = 0;
+  let coursesCount = 0;
+
+  try {
+    const { count: uCount, error: uErr } = await supabase.from('users').select('*', { count: 'exact', head: true });
+    if (!uErr && uCount !== null) professionalsCount = uCount;
+
+    const { count: jCount, error: jErr } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
+    if (!jErr && jCount !== null) jobsCount = jCount;
+
+    const { count: cCount, error: cErr } = await supabase.from('courses').select('*', { count: 'exact', head: true });
+    if (!cErr && cCount !== null) coursesCount = cCount;
+  } catch (e) {
+    // silently fail and show 0 if tables don't exist
+  }
   return (
     <div className="flex flex-col w-full bg-white font-sans text-[#1F2937] overflow-x-hidden">
       
@@ -178,7 +199,9 @@ export default async function Home() {
             <div className="flex items-center gap-4">
               <Users className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
               <div>
-                <p className="text-2xl font-bold">10,000+</p>
+                <p className="text-2xl font-bold">
+                  <CountUp end={professionalsCount} suffix="+" />
+                </p>
                 <p className="text-xs text-blue-100/70">Healthcare Professionals<br/>Onboarded</p>
               </div>
             </div>
@@ -188,7 +211,9 @@ export default async function Home() {
             <div className="flex items-center gap-4">
               <Briefcase className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
               <div>
-                <p className="text-2xl font-bold">2,000+</p>
+                <p className="text-2xl font-bold">
+                  <CountUp end={jobsCount} suffix="+" />
+                </p>
                 <p className="text-xs text-blue-100/70">Job Opportunities<br/>Posted</p>
               </div>
             </div>
@@ -198,7 +223,9 @@ export default async function Home() {
             <div className="flex items-center gap-4">
               <GraduationCap className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
               <div>
-                <p className="text-2xl font-bold">500+</p>
+                <p className="text-2xl font-bold">
+                  <CountUp end={coursesCount} suffix="+" />
+                </p>
                 <p className="text-xs text-blue-100/70">Courses & Learning<br/>Resources</p>
               </div>
             </div>
@@ -208,7 +235,9 @@ export default async function Home() {
             <div className="flex items-center gap-4">
               <ShieldCheck className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
               <div>
-                <p className="text-2xl font-bold">100%</p>
+                <p className="text-2xl font-bold">
+                  <CountUp end={100} suffix="%" />
+                </p>
                 <p className="text-xs text-blue-100/70">Verified & Trusted<br/>Community</p>
               </div>
             </div>
