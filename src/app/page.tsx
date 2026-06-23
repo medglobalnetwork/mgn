@@ -24,23 +24,23 @@ export default async function Home() {
             </p>
 
             <div className="flex flex-wrap items-center gap-6 mt-8 font-bold text-sm text-[#0B1B3D]">
-               <span className="flex items-center gap-2"><Users className="w-5 h-5 text-[#0052CC]" /> Connect</span>
+               <span className="flex items-center gap-2"><Users className="w-5 h-5 text-[#183670]" /> Connect</span>
                <span className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-[#00A67E]" /> Learn</span>
                <span className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-green-500" /> Grow</span>
                <span className="flex items-center gap-2"><Star className="w-5 h-5 text-orange-400" /> Thrive</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 mt-10 w-full">
-              <Link href="/auth/signup" className="flex items-center justify-center bg-[#0052CC] text-white px-8 py-3.5 rounded-md font-bold text-base hover:bg-blue-700 transition-all shadow-md">
+              <Link href="/auth/signup" className="flex items-center justify-center bg-[#183670] text-white px-8 py-3.5 rounded-md font-bold text-base hover:bg-[#0B1B3D] transition-all shadow-md">
                 Get Started – It's Free
               </Link>
-              <Link href="#features" className="flex items-center justify-center bg-white text-[#0052CC] border border-gray-300 px-8 py-3.5 rounded-md font-bold text-base hover:bg-gray-50 transition-all">
+              <Link href="#features" className="flex items-center justify-center bg-white text-[#183670] border border-gray-300 px-8 py-3.5 rounded-md font-bold text-base hover:bg-gray-50 transition-all">
                 Explore Features
               </Link>
             </div>
 
             <div className="flex items-center gap-2 text-gray-500 font-medium mt-8 text-sm">
-              <ShieldCheck className="w-5 h-5 text-[#0052CC]" />
+              <ShieldCheck className="w-5 h-5 text-[#183670]" />
               Trusted | Verified | Healthcare Focused
             </div>
           </div>
@@ -71,14 +71,14 @@ export default async function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Card 1 */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-5 text-[#0052CC]">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-5 text-[#183670]">
                 <Users size={24} />
               </div>
               <h3 className="text-lg font-bold text-[#0B1B3D] mb-3">Professional Network</h3>
               <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-grow">
                 Connect with verified healthcare professionals, expand your network, and collaborate.
               </p>
-              <Link href="/auth/signup" className="text-[#0052CC] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+              <Link href="/auth/signup" className="text-[#183670] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
                 Explore Network <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
@@ -92,21 +92,21 @@ export default async function Home() {
               <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-grow">
                 Discover the right career opportunities and build your future.
               </p>
-              <Link href="/auth/signup" className="text-[#0052CC] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+              <Link href="/auth/signup" className="text-[#183670] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
                 Find Jobs <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
 
             {/* Card 3 */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-5 text-[#0052CC]">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-5 text-[#183670]">
                 <GraduationCap size={24} />
               </div>
               <h3 className="text-lg font-bold text-[#0B1B3D] mb-3">Learning & Growth</h3>
               <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-grow">
                 Access courses, certifications, and resources to upskill and stay ahead.
               </p>
-              <Link href="/auth/signup" className="text-[#0052CC] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+              <Link href="/auth/signup" className="text-[#183670] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
                 Start Learning <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
@@ -120,7 +120,7 @@ export default async function Home() {
               <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-grow">
                 Buy, sell, and discover healthcare products, services, and equipment.
               </p>
-              <Link href="/auth/signup" className="text-[#0052CC] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+              <Link href="/auth/signup" className="text-[#183670] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
                 Explore Marketplace <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
@@ -140,7 +140,7 @@ export default async function Home() {
               <div className="w-24 h-24 rounded-full bg-blue-50 border-[3px] border-white shadow-md mb-4 overflow-hidden relative">
                 <Image src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200&auto=format&fit=crop" alt="Doctor" fill className="object-cover" unoptimized/>
               </div>
-              <h4 className="text-[#0052CC] font-bold mb-2">Healthcare Professionals</h4>
+              <h4 className="text-[#183670] font-bold mb-2">Healthcare Professionals</h4>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">Doctors, Nurses, Therapists, Technicians & more</p>
             </div>
 
@@ -148,7 +148,7 @@ export default async function Home() {
               <div className="w-24 h-24 rounded-full bg-blue-50 border-[3px] border-white shadow-md mb-4 overflow-hidden relative">
                 <Image src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=200&auto=format&fit=crop" alt="Student" fill className="object-cover" unoptimized/>
               </div>
-              <h4 className="text-[#0052CC] font-bold mb-2">Students & Learners</h4>
+              <h4 className="text-[#183670] font-bold mb-2">Students & Learners</h4>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">Medical, Paramedical & Allied Health Students</p>
             </div>
 
@@ -156,7 +156,7 @@ export default async function Home() {
               <div className="w-24 h-24 rounded-full bg-blue-50 border-[3px] border-white shadow-md mb-4 overflow-hidden relative">
                 <Image src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200&auto=format&fit=crop" alt="Hospital" fill className="object-cover" unoptimized/>
               </div>
-              <h4 className="text-[#0052CC] font-bold mb-2">Organizations</h4>
+              <h4 className="text-[#183670] font-bold mb-2">Organizations</h4>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">Hospitals, Clinics, Institutions & Recruiters</p>
             </div>
 
@@ -164,7 +164,7 @@ export default async function Home() {
               <div className="w-24 h-24 rounded-full bg-blue-50 border-[3px] border-white shadow-md mb-4 overflow-hidden relative">
                 <Image src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=200&auto=format&fit=crop" alt="Business" fill className="object-cover" unoptimized/>
               </div>
-              <h4 className="text-[#0052CC] font-bold mb-2">Businesses</h4>
+              <h4 className="text-[#183670] font-bold mb-2">Businesses</h4>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">Suppliers, Manufacturers & Service Providers</p>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default async function Home() {
                 <ShieldCheck className="w-8 h-8 text-[#00A67E]" />
               </div>
               <div>
-                <h4 className="font-bold text-[#0052CC] mb-2">Safe. Secure. Verified.</h4>
+                <h4 className="font-bold text-[#183670] mb-2">Safe. Secure. Verified.</h4>
                 <p className="text-xs text-gray-500 leading-relaxed">
                   We ensure a trusted environment with verified profiles, secure communication, and privacy you can count on.
                 </p>
