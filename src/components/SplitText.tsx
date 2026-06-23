@@ -11,7 +11,7 @@ interface SplitTextProps {
 export default function SplitText({ text, className = "", delay = 0 }: SplitTextProps) {
   const words = text.split(" ");
 
-  const container = {
+  const container: any = {
     hidden: { opacity: 0 },
     visible: (i = 1) => ({
       opacity: 1,
@@ -19,7 +19,7 @@ export default function SplitText({ text, className = "", delay = 0 }: SplitText
     }),
   };
 
-  const child = {
+  const child: any = {
     visible: {
       opacity: 1,
       y: 0,
