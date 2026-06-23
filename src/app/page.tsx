@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Users, BookOpen, TrendingUp, Star, Briefcase, GraduationCap, ShoppingCart, ShieldCheck } from "lucide-react";
 import CountUp from "@/components/CountUp";
+import SplitText from "@/components/SplitText";
 import { getSupabaseServer } from "@/lib/supabase";
 
 export const revalidate = 0;
@@ -86,7 +87,7 @@ export default async function Home() {
       <section id="features" className="w-full py-16 bg-[#F8FAFC]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-[#0B1B3D] text-center mb-12">
-            Everything You Need. All in One Platform.
+            <SplitText text="Everything You Need. All in One Platform." />
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -153,7 +154,7 @@ export default async function Home() {
       <section className="w-full py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-[#0B1B3D] text-center mb-12">
-            Who Is MGN For?
+            <SplitText text="Who Is MGN For?" />
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
