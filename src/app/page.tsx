@@ -3,7 +3,6 @@ import Link from "next/link";
 import RotatingText from "@/components/RotatingText";
 import CountdownTimer from "@/components/CountdownTimer";
 import FoundingMemberBenefits from "@/components/FoundingMemberBenefits";
-import AuthRedirect from "@/components/AuthRedirect";
 import { getSupabaseServer } from "@/lib/supabase";
 
 export const revalidate = 0; // Ensure fresh data on every load
@@ -22,7 +21,6 @@ export default async function Home() {
   const remaining = targetSpots - spotsFilled;
   return (
     <div className="flex flex-col w-full bg-white font-sans text-[#1F2937]">
-      <AuthRedirect />
       {/* Hero Section */}
       <section className="w-full relative overflow-hidden pb-12 pt-8 lg:pt-16 lg:pb-20 bg-white border-b border-gray-100">
         <div className="absolute top-0 right-0 w-1/2 h-full hero-dots opacity-50 z-0"></div>
