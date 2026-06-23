@@ -58,7 +58,7 @@ function OnboardingContent() {
   // Default step logic:
   // In a real app, you would fetch the user's progress from the Rust API / Supabase here
   // and set the initial step accordingly. For now, we start at the beginning or a requested step.
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>("VERIFY_OTP");
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>("ACCOUNT_TYPE");
   const [accountType, setAccountType] = useState<"individual" | "organization" | null>(null);
   const [category, setCategory] = useState<string>("");
   const [phoneSent, setPhoneSent] = useState(false);
@@ -115,7 +115,7 @@ function OnboardingContent() {
 
   // --- RENDER HELPERS ---
   const renderStepIndicator = () => {
-    const steps = ["VERIFY_OTP", "ACCOUNT_TYPE", "CATEGORY_SELECTION", "BASIC_PROFILE", "SUCCESS"];
+    const steps = ["ACCOUNT_TYPE", "CATEGORY_SELECTION", "BASIC_PROFILE", "SUCCESS"];
     const currentIndex = steps.indexOf(currentStep);
     
     return (
@@ -258,83 +258,7 @@ function OnboardingContent() {
           
           {currentStep !== "SUCCESS" && renderStepIndicator()}
 
-          {/* STEP 1: OTP VERIFICATION */}
-          {currentStep === "VERIFY_OTP" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-black text-[#0B1B3D] tracking-tight">
-                  {phoneSent ? "Verify Your Phone" : "Complete Your Account"}
-                </h2>
-                <p className="text-sm text-gray-500 mt-2">
-                  {phoneSent ? "Please enter the 6-digit code sent to your phone." : "Google provided your Name & Email. Please enter your phone number to continue."}
-                </p>
-              </div>
-
-              {otpError && (
-                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 mb-6 font-medium text-center">
-                  {otpError}
-                </div>
-              )}
-              
-              {!phoneSent ? (
-                <>
-                  <div className="flex gap-3 mb-8">
-                    <select 
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      className="w-1/3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
-                    >
-                      <option value="+91">+91 (IN)</option>
-                      <option value="+1">+1 (US)</option>
-                      <option value="+44">+44 (UK)</option>
-                    </select>
-                    <input 
-                      type="tel" 
-                      placeholder="Phone Number"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="w-2/3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
-                    />
-                  </div>
-                  <div id="recaptcha-container" className="flex justify-center mb-4"></div>
-                  <button 
-                    onClick={handleSendOtp}
-                    disabled={isProcessingOtp || !phoneNumber}
-                    className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-70"
-                  >
-                    {isProcessingOtp ? "Sending..." : "Send OTP"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="flex justify-center gap-3 mb-8">
-                    {otpArray.map((digit, i) => (
-                      <input 
-                        key={i}
-                        id={`otp-${i}`}
-                        type="text" 
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all bg-gray-50 focus:bg-white"
-                      />
-                    ))}
-                  </div>
-
-                  <button 
-                    onClick={handleVerifyOtp}
-                    disabled={isProcessingOtp || otpArray.join("").length !== 6}
-                    className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-70"
-                  >
-                    {isProcessingOtp ? "Verifying..." : "Verify & Continue"}
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* STEP 2: ACCOUNT TYPE */}
+          {/* STEP 1: ACCOUNT TYPE */}
           {currentStep === "ACCOUNT_TYPE" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="text-center mb-8">
