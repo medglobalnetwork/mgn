@@ -9,17 +9,34 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 import { MAIN_NAV, NavSubGroup } from "@/config/navigation";
 
+const MOCK_SUGGESTIONS = [
+  { id: 1, type: "Professional", title: "Dr. Sarah Johnson", subtitle: "Cardiologist", icon: "user" },
+  { id: 2, type: "Job", title: "Senior Registered Nurse", subtitle: "Fortis Healthcare", icon: "briefcase" },
+  { id: 3, type: "Course", title: "Advanced ECG Interpretation", subtitle: "Certification", icon: "book" },
+  { id: 4, type: "Organization", title: "AIIMS New Delhi", subtitle: "Hospital", icon: "building" },
+  { id: 5, type: "Professional", title: "Dr. Rajiv Kumar", subtitle: "Neurologist", icon: "user" },
+  { id: 6, type: "Job", title: "Resident Medical Officer", subtitle: "Apollo Hospitals", icon: "briefcase" },
+];
+
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navRef = useRef<HTMLElement>(null);
+
+  const filteredSuggestions = MOCK_SUGGESTIONS.filter(s => 
+    s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    s.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.type.toLowerCase().includes(searchQuery.toLowerCase())
+  ).slice(0, 4);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
+        setSearchQuery("");
       }
     }
     if (isSearchOpen) {
@@ -219,15 +236,52 @@ export default function Navbar() {
         {/* Expandable Search Bar */}
         {isSearchOpen && (
           <div className="absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-md py-4 px-6 lg:px-12 z-40">
-            <div className="max-w-4xl mx-auto flex items-center bg-gray-50 rounded-lg border border-gray-200 overflow-hidden px-4">
-              <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input 
-                type="text" 
-                placeholder="Search healthcare professionals, jobs, organizations, or resources..." 
-                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 py-3 px-3 text-sm text-gray-700"
-                autoFocus
-              />
-              <button className="text-sm font-bold text-white bg-[#183670] px-5 py-2 rounded hover:bg-[#0B1B3D] transition-colors shrink-0">Search</button>
+            <div className="max-w-4xl mx-auto relative">
+              <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 overflow-hidden px-4 focus-within:border-[#183670] focus-within:ring-1 focus-within:ring-[#183670] transition-all">
+                <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search healthcare professionals, jobs, organizations, or resources..." 
+                  className="w-full bg-transparent border-none focus:outline-none focus:ring-0 py-3 px-3 text-sm text-gray-700"
+                  autoFocus
+                />
+                <button className="text-sm font-bold text-white bg-[#183670] px-5 py-2 rounded hover:bg-[#0B1B3D] transition-colors shrink-0">Search</button>
+              </div>
+
+              {/* Adaptive Suggestions Dropdown */}
+              {searchQuery.length > 0 && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {filteredSuggestions.length > 0 ? (
+                    <div className="flex flex-col">
+                      <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Suggestions
+                      </div>
+                      {filteredSuggestions.map((s, idx) => (
+                        <div key={s.id} className={`flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors ${idx !== filteredSuggestions.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100 shrink-0 text-[#183670]">
+                            {s.icon === 'user' && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>}
+                            {s.icon === 'briefcase' && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>}
+                            {s.icon === 'book' && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>}
+                            {s.icon === 'building' && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>}
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm text-[#0B1B3D]">{s.title}</div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                              <span className="font-semibold text-[#183670]">{s.type}</span> &bull; {s.subtitle}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-gray-500 text-sm">
+                      No results found for <span className="font-bold">"{searchQuery}"</span>. Try a different keyword.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
