@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Users, BookOpen, TrendingUp, Star, Briefcase, GraduationCap, ShoppingCart, ShieldCheck } from "lucide-react";
+import { Users, BookOpen, TrendingUp, Star, Briefcase, GraduationCap, ShoppingCart, ShieldCheck, Gift, Crown, Zap } from "lucide-react";
 import CountUp from "@/components/CountUp";
 import SplitText from "@/components/SplitText";
 import { getSupabaseServer } from "@/lib/supabase";
@@ -78,6 +78,34 @@ export default async function Home() {
                 priority 
                 unoptimized
               />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Early Access Benefits Banner */}
+      <section className="w-full bg-[#183670] text-white py-6 border-y border-blue-900/50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')] bg-repeat"></div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 shrink-0">
+            <h3 className="font-bold text-lg text-blue-200 uppercase tracking-wide text-center md:text-left">Early Access Benefits:</h3>
+          </div>
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-8 gap-y-4 flex-1">
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-yellow-400 shrink-0" />
+              <span className="font-medium text-sm">Founding Member Badge</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-green-400 shrink-0" />
+              <span className="font-medium text-sm">1 Year Free Premium</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-yellow-400 shrink-0" />
+              <span className="font-medium text-sm">Priority Support</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-blue-300 shrink-0" />
+              <span className="font-medium text-sm">Exclusive Network Access</span>
             </div>
           </div>
         </div>
