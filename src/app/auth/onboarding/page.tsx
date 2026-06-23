@@ -43,6 +43,7 @@ export default function OnboardingPage() {
   const [specialization, setSpecialization] = useState("");
   const [company, setCompany] = useState("");
   const [designation, setDesignation] = useState("");
+  const [experience, setExperience] = useState("");
   
   // Interests
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
