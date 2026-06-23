@@ -60,8 +60,17 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
-    } else if (user && !name) {
-      setName(user.displayName || "");
+    } else if (user) {
+      if (!name) setName(user.displayName || "");
+      
+      // Prevent already onboarded users from seeing this page
+      const checkStatus = async () => {
+        const { data } = await supabase.from('users').select('onboarding_score').eq('firebase_uid', user.uid).single();
+        if (data && data.onboarding_score > 0) {
+          router.push("/dashboard");
+        }
+      };
+      checkStatus();
     }
   }, [user, loading, router]);
 
