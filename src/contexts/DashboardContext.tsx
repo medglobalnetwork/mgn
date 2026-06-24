@@ -18,13 +18,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Check if the user has completed onboarding
-    const isCompleted = localStorage.getItem("mgn_onboarding_completed");
-    if (!isCompleted && !pathname.includes("/auth/onboarding")) {
-      router.push("/auth/onboarding");
-    }
-  }, [pathname, router]);
+  // We will check onboarding dynamically based on the profile data from Supabase
 
   useEffect(() => {
     async function checkVerificationLock() {
@@ -37,11 +31,19 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('account_type, verified, created_at')
         .eq('id', session.user.id)
         .single();
+        
+      // If no profile or no account_type, redirect to onboarding
+      if (error || !profile || !profile.account_type) {
+         if (!pathname.includes("/auth/onboarding")) {
+           router.push("/auth/onboarding");
+         }
+         return;
+      }
         
       if (profile && profile.account_type === 'professional' && !profile.verified) {
         const createdAt = new Date(profile.created_at).getTime();
