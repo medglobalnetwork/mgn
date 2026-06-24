@@ -35,6 +35,7 @@ export default function HospitalLogos() {
       <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-6">Trusted By Leading Healthcare Organizations</p>
       
       <div className="relative w-full">
+
         <LogoLoop 
           logos={logoItems} 
           speed={80} 

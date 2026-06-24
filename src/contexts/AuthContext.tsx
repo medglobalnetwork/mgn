@@ -1,25 +1,12 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import {
-  auth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  type User,
-  type ConfirmationResult,
-} from "@/lib/firebase";
+import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 type AuthContextType = {
   user: User | null;
+  session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName?: string) => Promise<void>;
@@ -27,9 +14,8 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (displayName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  setupRecaptcha: (containerId: string) => void;
-  sendPhoneOtp: (phoneNumber: string) => Promise<ConfirmationResult>;
-  verifyPhoneOtp: (confirmationResult: ConfirmationResult, otp: string) => Promise<void>;
+  sendPhoneOtp: (phoneNumber: string) => Promise<void>;
+  verifyPhoneOtp: (phoneNumber: string, otp: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,89 +28,96 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    // Initial fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function login(email: string, password: string) {
-    await signInWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
   }
 
   async function signup(email: string, password: string, displayName?: string) {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(cred.user, { displayName });
-    }
-    
-    // Save the user to Supabase using the new schema
-    const { data: userData, error: userError } = await supabase.from('users').insert({
-      firebase_uid: cred.user.uid,
-      email: email
-    }).select().single();
-
-    if (userError) {
-      console.error("Error saving user to Supabase:", userError);
-    } else if (userData) {
-      // Create the profile
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: userData.id,
-        display_name: displayName || null
-      });
-      if (profileError) {
-        console.error("Error saving profile to Supabase:", profileError);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: displayName,
+        }
       }
-    }
+    });
+    if (error) throw error;
   }
 
   async function logout() {
-    await signOut(auth);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }
 
   async function resetPassword(email: string) {
-    await sendPasswordResetEmail(auth, email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
   }
 
   async function updateUserProfile(displayName: string) {
-    if (auth.currentUser) {
-      await updateProfile(auth.currentUser, { displayName });
-      setUser({ ...auth.currentUser, displayName } as User);
-    }
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: displayName }
+    });
+    if (error) throw error;
   }
 
   async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  }
-
-  function setupRecaptcha(containerId: string) {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-        size: "invisible",
-      });
-    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/onboarding`,
+      }
+    });
+    if (error) throw error;
   }
 
   async function sendPhoneOtp(phoneNumber: string) {
-    if (!window.recaptchaVerifier) {
-      throw new Error("Recaptcha not initialized");
-    }
-    return await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: phoneNumber,
+    });
+    if (error) throw error;
   }
 
-  async function verifyPhoneOtp(confirmationResult: ConfirmationResult, otp: string) {
-    await confirmationResult.confirm(otp);
+  async function verifyPhoneOtp(phoneNumber: string, otp: string) {
+    const { error } = await supabase.auth.verifyOtp({
+      phone: phoneNumber,
+      token: otp,
+      type: 'sms',
+    });
+    if (error) throw error;
   }
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        session,
         loading,
         login,
         signup,
@@ -132,7 +125,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPassword,
         updateUserProfile,
         signInWithGoogle,
-        setupRecaptcha,
         sendPhoneOtp,
         verifyPhoneOtp,
       }}
@@ -140,11 +132,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Add types for the window object to support RecaptchaVerifier
-declare global {
-  interface Window {
-    recaptchaVerifier: RecaptchaVerifier;
-  }
 }

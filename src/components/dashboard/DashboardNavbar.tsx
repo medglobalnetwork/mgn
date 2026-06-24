@@ -6,18 +6,16 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
 export default function DashboardNavbar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { setMobileSidebarOpen } = useDashboard();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await logout();
       router.push("/auth/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -25,9 +23,9 @@ export default function DashboardNavbar() {
   };
 
   // Safe fallback for user info
-  const displayName = user?.displayName || "User";
-  const firstName = displayName.split(" ")[0];
-  const photoUrl = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0052CC&color=fff`;
+  const fullName = user?.user_metadata?.full_name || "User";
+  const firstName = fullName.split(" ")[0];
+  const photoUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052CC&color=fff`;
 
   return (
     <header className="w-full h-14 sm:h-[72px] bg-white flex items-center justify-between px-4 sm:px-6 shrink-0 relative z-20 sticky top-0 border-b border-gray-100 sm:border-none shadow-sm sm:shadow-none">
@@ -100,7 +98,7 @@ export default function DashboardNavbar() {
               className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-200 focus:outline-none"
             >
               <div className="w-8 h-8 rounded-full bg-blue-100 overflow-hidden relative border border-gray-100 shrink-0">
-                <Image src={photoUrl} alt={displayName} fill className="object-cover" unoptimized />
+                <Image src={photoUrl} alt={fullName} fill className="object-cover" unoptimized />
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-[13px] font-bold text-[#0B1B3D]">Hi, {firstName}</span>
@@ -117,7 +115,7 @@ export default function DashboardNavbar() {
                 ></div>
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 py-3 border-b border-gray-50">
-                    <p className="text-sm font-bold text-[#0B1B3D] truncate">{displayName}</p>
+                    <h4 className="text-sm font-bold text-[#0B1B3D] truncate">{fullName}</h4>
                     <p className="text-[11px] text-gray-500 truncate">{user?.email}</p>
                   </div>
                   

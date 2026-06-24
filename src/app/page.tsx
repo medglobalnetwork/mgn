@@ -6,30 +6,11 @@ import SplitText from "@/components/SplitText";
 import ShinyText from "@/components/ShinyText";
 import CountdownTimer from "@/components/CountdownTimer";
 import HospitalLogos from "@/components/HospitalLogos";
-import { getSupabaseServer } from "@/lib/supabase";
+import DynamicStats from "@/components/DynamicStats";
 
 export const revalidate = 0;
 
 export default async function Home() {
-  const supabase = getSupabaseServer();
-  
-  // Fetch real counts from database
-  let professionalsCount = 0;
-  let jobsCount = 0;
-  let coursesCount = 0;
-
-  try {
-    const { count: uCount, error: uErr } = await supabase.from('users').select('*', { count: 'exact', head: true });
-    if (!uErr && uCount !== null) professionalsCount = uCount;
-
-    const { count: jCount, error: jErr } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
-    if (!jErr && jCount !== null) jobsCount = jCount;
-
-    const { count: cCount, error: cErr } = await supabase.from('courses').select('*', { count: 'exact', head: true });
-    if (!cErr && cCount !== null) coursesCount = cCount;
-  } catch (e) {
-    // silently fail and show 0 if tables don't exist
-  }
   return (
     <div className="flex flex-col w-full bg-white font-sans text-[#1F2937] overflow-x-hidden">
       
@@ -234,53 +215,7 @@ export default async function Home() {
       {/* Stats Banner */}
       <section className="w-full">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#183670] rounded-2xl py-10 px-8 text-white flex flex-col md:flex-row flex-wrap items-center justify-between gap-8 md:gap-4 shadow-xl">
-            <div className="flex items-center gap-4">
-              <Users className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
-              <div>
-                <p className="text-2xl font-bold">
-                  <CountUp end={professionalsCount} suffix="+" />
-                </p>
-                <p className="text-xs text-blue-100/70">Healthcare Professionals<br/>Onboarded</p>
-              </div>
-            </div>
-            
-            <div className="hidden md:block w-px h-12 bg-white/10"></div>
-            
-            <div className="flex items-center gap-4">
-              <Briefcase className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
-              <div>
-                <p className="text-2xl font-bold">
-                  <CountUp end={jobsCount} suffix="+" />
-                </p>
-                <p className="text-xs text-blue-100/70">Job Opportunities<br/>Posted</p>
-              </div>
-            </div>
-            
-            <div className="hidden md:block w-px h-12 bg-white/10"></div>
-            
-            <div className="flex items-center gap-4">
-              <GraduationCap className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
-              <div>
-                <p className="text-2xl font-bold">
-                  <CountUp end={coursesCount} suffix="+" />
-                </p>
-                <p className="text-xs text-blue-100/70">Courses & Learning<br/>Resources</p>
-              </div>
-            </div>
-            
-            <div className="hidden md:block w-px h-12 bg-white/10"></div>
-            
-            <div className="flex items-center gap-4">
-              <ShieldCheck className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
-              <div>
-                <p className="text-2xl font-bold">
-                  <CountUp end={100} suffix="%" />
-                </p>
-                <p className="text-xs text-blue-100/70">Verified & Trusted<br/>Community</p>
-              </div>
-            </div>
-          </div>
+          <DynamicStats />
         </div>
       </section>
 

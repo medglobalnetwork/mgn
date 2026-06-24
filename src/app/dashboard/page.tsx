@@ -127,9 +127,9 @@ export default function DashboardPage() {
   if (!mounted) return null;
 
   // Safe fallback for user info
-  const displayName = user?.displayName || "User";
-  const firstName = displayName.split(" ")[0];
-  const photoUrl = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0052CC&color=fff`;
+  const fullName = user?.user_metadata?.full_name || "User";
+  const firstName = fullName.split(" ")[0];
+  const photoUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052CC&color=fff`;
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 max-w-[1600px] mx-auto">
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           <div className="relative z-10 max-w-[60%]">
             <h2 className="text-gray-600 text-sm font-bold mb-1">Welcome back,</h2>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0B1B3D] flex items-center gap-2 mb-2">
-              {displayName} <span className="text-2xl">👋</span>
+              {fullName} <span className="text-2xl">👋</span>
             </h1>
             <p className="text-sm font-medium text-gray-500 mb-8">Discover. Connect. Grow.</p>
 

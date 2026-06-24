@@ -61,11 +61,11 @@ function OnboardingContent() {
     if (!loading && !user) {
       router.push("/auth/login");
     } else if (user) {
-      if (!name) setName(user.displayName || "");
+      if (!name) setName(user.user_metadata?.full_name || "");
       
       // Prevent already onboarded users from seeing this page
       const checkStatus = async () => {
-        const { data } = await supabase.from('users').select('onboarding_score').eq('firebase_uid', user.uid).single();
+        const { data } = await supabase.from('profiles').select('onboarding_score').eq('id', user.id).single();
         if (data && data.onboarding_score > 0) {
           router.push("/dashboard");
         }
@@ -104,12 +104,12 @@ function OnboardingContent() {
       }
 
       const payload = {
-        firebase_uid: user.uid,
+        firebase_uid: user.id, // Kept key name for compatibility if needed, but updated value
         email: user.email || "",
-        phone: user.phoneNumber || "",
+        phone: user.phone || "",
         account_type: accountType === "organization" ? "organization" : "individual",
         category: accountType,
-        name: name || user.displayName || "MGN User",
+        name: name || user.user_metadata?.full_name || "MGN User",
         country,
         city,
         headline,
@@ -133,7 +133,7 @@ function OnboardingContent() {
 
       // Generate a mock referral code for the UI
       const namePart = (name || "MGN").split(" ")[0].toUpperCase().replace(/[^a-zA-Z0-9]/g, '');
-      const uidPart = user.uid.substring(0, 4).toUpperCase();
+      const uidPart = user.id.substring(0, 4).toUpperCase();
       setGeneratedReferral(`${namePart}${uidPart}`);
       
       handleNext("SUCCESS");
@@ -284,9 +284,9 @@ function OnboardingContent() {
 
                 <div className="space-y-5">
                   <div className="flex justify-center mb-6">
-                     <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 overflow-hidden relative cursor-pointer hover:bg-gray-50 transition-colors">
-                        {user.photoURL ? (
-                          <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                     <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-2xl font-bold overflow-hidden mb-3 border-2 border-white shadow-sm">
+                        {user?.user_metadata?.avatar_url ? (
+                          <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
                           <div className="flex flex-col items-center">
                             <span className="text-3xl">+</span>

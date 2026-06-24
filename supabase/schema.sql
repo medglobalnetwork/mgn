@@ -27,41 +27,60 @@ DROP TABLE IF EXISTS education CASCADE;
 DROP TABLE IF EXISTS professional_identities CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS roles CASCADE; -- In case old schema had roles
+DROP TABLE IF EXISTS roles CASCADE;
 
 -- ==========================================
 -- IDENTITY & PROFILES
 -- ==========================================
 
--- 1. Users Table (Core Identity syncs with Firebase via Rust API)
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    firebase_uid VARCHAR(128) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(20) UNIQUE,
-    account_type VARCHAR(50), -- 'individual' or 'organization'
-    status VARCHAR(50) DEFAULT 'active', -- 'active', 'suspended', 'unverified'
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- 2. Profiles Table (Public Identity)
+-- 1. Profiles Table (Public Identity linked to auth.users)
 CREATE TABLE profiles (
-    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(200),
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name VARCHAR(200),
+    email VARCHAR(255) UNIQUE,
+    phone VARCHAR(20) UNIQUE,
+    role VARCHAR(50) DEFAULT 'user',
+    account_type VARCHAR(50), -- 'individual' or 'organization'
+    provider VARCHAR(50) DEFAULT 'email',
+    profile_completed BOOLEAN DEFAULT false,
     photo TEXT,
     bio TEXT,
     city VARCHAR(100),
     country VARCHAR(100),
     headline VARCHAR(255),
+    interests TEXT[],
+    status VARCHAR(50) DEFAULT 'active', -- 'active', 'suspended', 'unverified'
+    onboarding_score INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Professional Identities Table (Category Selection)
+-- Trigger to create profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user() 
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, phone, full_name, provider)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    NEW.phone,
+    NEW.raw_user_meta_data->>'full_name',
+    COALESCE(NEW.raw_user_meta_data->>'provider', 'email')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+
+-- 2. Professional Identities Table (Category Selection)
 CREATE TABLE professional_identities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     identity_type VARCHAR(100) NOT NULL, -- e.g. 'Doctor', 'Medical Student', 'Hospital'
     license_number VARCHAR(100),
     council_name VARCHAR(150),
@@ -69,10 +88,10 @@ CREATE TABLE professional_identities (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. Education Table
+-- 3. Education Table
 CREATE TABLE education (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     institution_name VARCHAR(255) NOT NULL,
     degree VARCHAR(100),
     field_of_study VARCHAR(100),
@@ -82,10 +101,10 @@ CREATE TABLE education (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Experience Table
+-- 4. Experience Table
 CREATE TABLE experience (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     company_name VARCHAR(255) NOT NULL,
     title VARCHAR(100) NOT NULL,
     location VARCHAR(150),
@@ -96,10 +115,10 @@ CREATE TABLE experience (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. Verification Requests Table
+-- 5. Verification Requests Table
 CREATE TABLE verification_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     document_type VARCHAR(100) NOT NULL,
     document_url TEXT NOT NULL,
     status VARCHAR(50) DEFAULT 'Pending', -- 'Pending', 'Approved', 'Rejected'
@@ -114,8 +133,8 @@ CREATE TABLE verification_requests (
 
 CREATE TABLE connections (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    requester_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    receiver_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    requester_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    receiver_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'accepted', 'rejected'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(requester_id, receiver_id)
@@ -123,7 +142,7 @@ CREATE TABLE connections (
 
 CREATE TABLE posts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    author_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     media_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -133,7 +152,7 @@ CREATE TABLE posts (
 CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
-    author_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -141,14 +160,14 @@ CREATE TABLE comments (
 CREATE TABLE likes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(post_id, user_id)
 );
 
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL, -- 'connection', 'like', 'comment', 'job'
     content TEXT NOT NULL,
     is_read BOOLEAN DEFAULT false,
@@ -162,7 +181,7 @@ CREATE TABLE notifications (
 
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    employer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    employer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     title VARCHAR(200) NOT NULL,
     description TEXT NOT NULL,
     location VARCHAR(150),
@@ -175,7 +194,7 @@ CREATE TABLE jobs (
 CREATE TABLE applications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
-    applicant_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    applicant_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     resume_url TEXT,
     cover_letter TEXT,
     status VARCHAR(50) DEFAULT 'applied',
@@ -189,7 +208,7 @@ CREATE TABLE applications (
 
 CREATE TABLE courses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    instructor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    instructor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     title VARCHAR(200) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) DEFAULT 0.00,
@@ -210,7 +229,7 @@ CREATE TABLE lessons (
 CREATE TABLE enrollments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     progress DECIMAL(5,2) DEFAULT 0.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(course_id, user_id)
@@ -221,7 +240,7 @@ CREATE TABLE enrollments (
 -- ==========================================
 
 CREATE TABLE vendors (
-    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
     company_name VARCHAR(200) NOT NULL,
     description TEXT,
     rating DECIMAL(3,2),
@@ -241,20 +260,11 @@ CREATE TABLE products (
 
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    buyer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    buyer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     total_amount DECIMAL(10,2) NOT NULL,
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- ==========================================
--- STORAGE BUCKETS INFO (Run manually in Supabase UI)
--- ==========================================
--- INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true);
--- INSERT INTO storage.buckets (id, name, public) VALUES ('certificates', 'certificates', true);
--- INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', false);
--- INSERT INTO storage.buckets (id, name, public) VALUES ('course-files', 'course-files', false);
--- INSERT INTO storage.buckets (id, name, public) VALUES ('organization-logos', 'organization-logos', true);
 
 -- Automatic Updated_At Triggers
 CREATE OR REPLACE FUNCTION update_modified_column()
@@ -265,7 +275,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_users_modtime BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_modified_column();
 CREATE TRIGGER update_profiles_modtime BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_modified_column();
 CREATE TRIGGER update_verifications_modtime BEFORE UPDATE ON verification_requests FOR EACH ROW EXECUTE FUNCTION update_modified_column();
 CREATE TRIGGER update_posts_modtime BEFORE UPDATE ON posts FOR EACH ROW EXECUTE FUNCTION update_modified_column();

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import { sendEmailVerification } from "firebase/auth";
+import { supabase } from "@/lib/supabase";
 
 export default function VerifyEmailPage() {
   const { user, loading } = useAuth();
@@ -17,7 +17,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/signup");
-    } else if (user?.emailVerified) {
+    } else if (user?.email_confirmed_at != null) {
       router.push("/auth/onboarding");
     }
   }, [user, loading, router]);
@@ -29,7 +29,9 @@ export default function VerifyEmailPage() {
       setError("");
       setMessage("");
       setIsSending(true);
-      await sendEmailVerification(user);
+      if (user?.email) {
+        await supabase.auth.resend({ type: 'signup', email: user.email });
+      }
       setMessage("Verification link sent! Please check your inbox.");
     } catch (err: any) {
       setError(err.message || "Failed to send link. Please try again.");
