@@ -5,22 +5,20 @@ import { Users, Briefcase, GraduationCap, ShieldCheck, Building2, UserPlus } fro
 import CountUp from "@/components/CountUp";
 
 interface StatsData {
-  totalUsers: number;
-  verifiedProfessionals: number;
+  professionals: number;
+  students: number;
   organizations: number;
   activeJobs: number;
   resources: number;
-  communityMembers: number;
 }
 
 export default function DynamicStats() {
   const [stats, setStats] = useState<StatsData>({
-    totalUsers: 0,
-    verifiedProfessionals: 0,
+    professionals: 0,
+    students: 0,
     organizations: 0,
     activeJobs: 0,
-    resources: 0,
-    communityMembers: 0
+    resources: 0
   });
 
   const [loading, setLoading] = useState(true);
@@ -51,9 +49,9 @@ export default function DynamicStats() {
         <UserPlus className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.totalUsers} />}
+            {loading ? "..." : <CountUp end={stats.professionals} />}
           </p>
-          <p className="text-xs text-blue-100/70">Total Registered<br/>Users</p>
+          <p className="text-xs text-blue-100/70">Healthcare<br/>Professionals</p>
         </div>
       </div>
       
@@ -63,9 +61,9 @@ export default function DynamicStats() {
         <Users className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.verifiedProfessionals} />}
+            {loading ? "..." : <CountUp end={stats.students} />}
           </p>
-          <p className="text-xs text-blue-100/70">Verified<br/>Professionals</p>
+          <p className="text-xs text-blue-100/70">Students &<br/>Learners</p>
         </div>
       </div>
 
@@ -77,7 +75,7 @@ export default function DynamicStats() {
           <p className="text-2xl font-bold">
             {loading ? "..." : <CountUp end={stats.organizations} />}
           </p>
-          <p className="text-xs text-blue-100/70">Verified<br/>Organizations</p>
+          <p className="text-xs text-blue-100/70">Organizations</p>
         </div>
       </div>
       
@@ -89,7 +87,7 @@ export default function DynamicStats() {
           <p className="text-2xl font-bold">
             {loading ? "..." : <CountUp end={stats.activeJobs} />}
           </p>
-          <p className="text-xs text-blue-100/70">Active<br/>Jobs</p>
+          <p className="text-xs text-blue-100/70">Jobs<br/>Posted</p>
         </div>
       </div>
       

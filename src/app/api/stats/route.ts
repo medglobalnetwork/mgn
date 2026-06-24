@@ -15,24 +15,22 @@ export async function GET() {
     
     // Map snake_case from Rust API to camelCase for frontend
     const mappedData = {
-      totalUsers: data.total_users || 0,
-      verifiedProfessionals: data.verified_professionals || 0,
+      professionals: data.professionals || 0,
+      students: data.students || 0,
       organizations: data.organizations || 0,
       activeJobs: data.active_jobs || 0,
-      resources: data.courses || 0, // Using courses as resources
-      communityMembers: data.total_users || 0,
+      resources: data.courses || 0,
     };
     
     return NextResponse.json(mappedData);
   } catch (error) {
     console.error('Stats API Error:', error);
     return NextResponse.json({
-      totalUsers: 0,
-      verifiedProfessionals: 0,
+      professionals: 0,
+      students: 0,
       organizations: 0,
       activeJobs: 0,
       resources: 0,
-      communityMembers: 0
     }, { status: 500 });
   }
 }
