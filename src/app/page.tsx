@@ -5,7 +5,7 @@ import CountUp from "@/components/CountUp";
 import SplitText from "@/components/SplitText";
 import ShinyText from "@/components/ShinyText";
 import CountdownTimer from "@/components/CountdownTimer";
-import LogoLoop from "@/components/LogoLoop";
+import HospitalLogos from "@/components/HospitalLogos";
 import { getSupabaseServer } from "@/lib/supabase";
 
 export const revalidate = 0;
@@ -119,7 +119,7 @@ export default async function Home() {
       </section>
 
       {/* Hospital Logo Loop */}
-      <LogoLoop />
+      <HospitalLogos />
 
       {/* Everything You Need Grid */}
       <section id="features" className="w-full py-16 bg-[#F8FAFC]">
