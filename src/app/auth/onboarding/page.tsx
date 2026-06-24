@@ -65,7 +65,7 @@ function OnboardingContent() {
       
       // Prevent already onboarded users from seeing this page
       const checkStatus = async () => {
-        const { data } = await supabase.from('profiles').select('onboarding_score').eq('id', user.id).single();
+        const { data } = await supabase.from('profiles').select('onboarding_score').eq('id', user.id).maybeSingle();
         if (data && data.onboarding_score > 0) {
           router.push("/dashboard");
         }
@@ -104,7 +104,7 @@ function OnboardingContent() {
       }
 
       const payload = {
-        firebase_uid: user.id, // Kept key name for compatibility if needed, but updated value
+        id: user.id,
         email: user.email || "",
         phone: user.phone || "",
         account_type: accountType === "organization" ? "organization" : "individual",
@@ -164,7 +164,7 @@ function OnboardingContent() {
         <div className="absolute top-0 right-0 w-full h-full opacity-10 bg-[url('/grid-pattern.svg')] bg-repeat z-0"></div>
         <div className="p-12 relative z-10 flex-grow flex flex-col justify-center">
           <Link href="/">
-            <img src="/logo-white.svg" alt="MGN Logo" className="h-10 mb-16" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <img src="/logo.svg" alt="MGN Logo" className="h-10 mb-16" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             <h1 className="text-3xl font-black mb-1 leading-tight text-white" style={{ display: 'none' }} id="fallback-logo">MGN</h1>
           </Link>
           
