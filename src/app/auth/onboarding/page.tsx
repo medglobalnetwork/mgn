@@ -252,8 +252,8 @@ function OnboardingContent() {
 
                 <div className="space-y-4">
                   {[
-                    { id: "professional", icon: Activity, title: "Healthcare Professional", desc: "Doctors, Nurses, Paramedics, PG Residents, etc." },
-                    { id: "student", icon: GraduationCap, title: "Student", desc: "UG Medical, Nursing, Pharmacy students" },
+                    { id: "professional", icon: Activity, title: "Healthcare Professional", desc: "All Graduates, Postgraduates & Working Professionals" },
+                    { id: "student", icon: GraduationCap, title: "Student", desc: "Undergraduate & Diploma Students" },
                     { id: "organization", icon: Building, title: "Organization", desc: "Hospitals, Clinics, Institutions" },
                     { id: "recruiter", icon: Users, title: "Recruiter", desc: "Hiring for healthcare roles" },
                     { id: "business", icon: Briefcase, title: "Business", desc: "Healthcare products & services" }
