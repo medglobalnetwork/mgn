@@ -12,15 +12,26 @@ export async function GET() {
 
     const data = await res.json();
     
-    return NextResponse.json(data);
+    // Map snake_case from Rust API to camelCase for frontend
+    const mappedData = {
+      totalUsers: data.total_users || 0,
+      verifiedProfessionals: data.verified_professionals || 0,
+      organizations: data.organizations || 0,
+      activeJobs: data.active_jobs || 0,
+      resources: data.courses || 0, // Using courses as resources
+      communityMembers: data.total_users || 0,
+    };
+    
+    return NextResponse.json(mappedData);
   } catch (error) {
     console.error('Stats API Error:', error);
     return NextResponse.json({
-      total_users: 0,
-      verified_professionals: 0,
+      totalUsers: 0,
+      verifiedProfessionals: 0,
       organizations: 0,
-      active_jobs: 0,
-      courses: 0
+      activeJobs: 0,
+      resources: 0,
+      communityMembers: 0
     }, { status: 500 });
   }
 }

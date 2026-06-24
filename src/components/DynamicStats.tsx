@@ -51,7 +51,7 @@ export default function DynamicStats() {
         <UserPlus className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.totalUsers} suffix="+" />}
+            {loading ? "..." : <CountUp end={stats.totalUsers} />}
           </p>
           <p className="text-xs text-blue-100/70">Total Registered<br/>Users</p>
         </div>
@@ -63,7 +63,7 @@ export default function DynamicStats() {
         <Users className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.verifiedProfessionals} suffix="+" />}
+            {loading ? "..." : <CountUp end={stats.verifiedProfessionals} />}
           </p>
           <p className="text-xs text-blue-100/70">Verified<br/>Professionals</p>
         </div>
@@ -75,7 +75,7 @@ export default function DynamicStats() {
         <Building2 className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.organizations} suffix="+" />}
+            {loading ? "..." : <CountUp end={stats.organizations} />}
           </p>
           <p className="text-xs text-blue-100/70">Verified<br/>Organizations</p>
         </div>
@@ -87,7 +87,7 @@ export default function DynamicStats() {
         <Briefcase className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.activeJobs} suffix="+" />}
+            {loading ? "..." : <CountUp end={stats.activeJobs} />}
           </p>
           <p className="text-xs text-blue-100/70">Active<br/>Jobs</p>
         </div>
@@ -99,7 +99,7 @@ export default function DynamicStats() {
         <GraduationCap className="w-8 h-8 text-blue-300 opacity-80" strokeWidth={1.5} />
         <div>
           <p className="text-2xl font-bold">
-            {loading ? "..." : <CountUp end={stats.resources} suffix="+" />}
+            {loading ? "..." : <CountUp end={stats.resources} />}
           </p>
           <p className="text-xs text-blue-100/70">Learning<br/>Resources</p>
         </div>
