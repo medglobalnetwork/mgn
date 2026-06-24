@@ -52,6 +52,11 @@ CREATE TABLE profiles (
     country VARCHAR(100),
     headline VARCHAR(255),
     interests TEXT[],
+    primary_category VARCHAR(100),
+    sub_category VARCHAR(100),
+    profile_score INTEGER DEFAULT 0,
+    badge_color VARCHAR(50) DEFAULT 'gray',
+    secondary_roles JSONB DEFAULT '[]'::jsonb,
     status VARCHAR(50) DEFAULT 'active', -- 'active', 'suspended', 'unverified'
     onboarding_score INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
