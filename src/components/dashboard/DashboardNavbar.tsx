@@ -8,7 +8,7 @@ import { useDashboard } from "@/contexts/DashboardContext";
 import { useRouter } from "next/navigation";
 
 export default function DashboardNavbar() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { setMobileSidebarOpen } = useDashboard();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -93,18 +93,25 @@ export default function DashboardNavbar() {
           {/* Profile Dropdown Container */}
           <div className="relative">
             {/* Profile Trigger */}
-            <button 
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-200 focus:outline-none"
-            >
-              <div className="w-8 h-8 rounded-full bg-blue-100 overflow-hidden relative border border-gray-100 shrink-0">
-                <Image src={photoUrl} alt={fullName} fill className="object-cover" unoptimized />
+            {loading ? (
+              <div className="flex items-center gap-2 p-1 pr-3">
+                <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse shrink-0"></div>
+                <div className="w-16 h-3 bg-gray-200 animate-pulse rounded"></div>
               </div>
-              <div className="flex items-center gap-1">
-                <span className="text-[13px] font-bold text-[#0B1B3D]">Hi, {firstName}</span>
-                <svg className={`w-4 h-4 text-gray-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </button>
+            ) : (
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-200 focus:outline-none"
+              >
+                <div className="w-8 h-8 rounded-full bg-blue-100 overflow-hidden relative border border-gray-100 shrink-0">
+                  <Image src={photoUrl} alt={fullName} fill className="object-cover" unoptimized />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[13px] font-bold text-[#0B1B3D]">Hi, {firstName}</span>
+                  <svg className={`w-4 h-4 text-gray-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </button>
+            )}
 
             {/* Dropdown Menu */}
             {isProfileOpen && (
