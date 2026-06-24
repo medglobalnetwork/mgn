@@ -1,33 +1,28 @@
-import { getSupabaseServer } from "@/lib/supabase";
 import { Users, UserPlus, ShieldCheck, Mail, Smartphone, Globe, Activity } from "lucide-react";
 import Link from "next/link";
 
 export const revalidate = 60; // Refresh every 60 seconds
 
 export default async function AdminDashboard() {
-  const supabase = getSupabaseServer();
+  // Fetch stats from Rust API
+  let stats = {
+    total_users: 0,
+    new_users_today: 0,
+    google_users: 0,
+    email_users: 0,
+    phone_users: 0,
+    verified_professionals: 0,
+    active_users: 0
+  };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Queries
-  const [
-    { count: totalUsers },
-    { count: newUsersToday },
-    { count: googleUsers },
-    { count: emailUsers },
-    { count: phoneUsers },
-    { count: verifiedUsers },
-    { count: activeUsers }
-  ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('provider', 'google'),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('provider', 'email'),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('provider', 'phone'),
-    supabase.from('professional_identities').select('*', { count: 'exact', head: true }).eq('is_verified', true),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'active')
-  ]);
+  try {
+    const res = await fetch("http://127.0.0.1:8000/stats", { next: { revalidate: 60 } });
+    if (res.ok) {
+      stats = await res.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch admin stats:", error);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -51,18 +46,18 @@ export default async function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Total Users" value={totalUsers || 0} icon={<Users className="w-6 h-6 text-blue-600" />} bgColor="bg-blue-50" />
-          <StatCard title="New Users Today" value={newUsersToday || 0} icon={<UserPlus className="w-6 h-6 text-green-600" />} bgColor="bg-green-50" />
-          <StatCard title="Verified Users" value={verifiedUsers || 0} icon={<ShieldCheck className="w-6 h-6 text-purple-600" />} bgColor="bg-purple-50" />
-          <StatCard title="Active Users" value={activeUsers || 0} icon={<Activity className="w-6 h-6 text-emerald-600" />} bgColor="bg-emerald-50" />
+          <StatCard title="Total Users" value={stats.total_users || 0} icon={<Users className="w-6 h-6 text-blue-600" />} bgColor="bg-blue-50" />
+          <StatCard title="New Users Today" value={stats.new_users_today || 0} icon={<UserPlus className="w-6 h-6 text-green-600" />} bgColor="bg-green-50" />
+          <StatCard title="Verified Users" value={stats.verified_professionals || 0} icon={<ShieldCheck className="w-6 h-6 text-purple-600" />} bgColor="bg-purple-50" />
+          <StatCard title="Active Users" value={stats.active_users || 0} icon={<Activity className="w-6 h-6 text-emerald-600" />} bgColor="bg-emerald-50" />
         </div>
 
         <div>
           <h3 className="text-lg font-bold text-gray-800 mb-4 mt-8">Authentication Methods</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard title="Google Logins" value={googleUsers || 0} icon={<Globe className="w-6 h-6 text-orange-600" />} bgColor="bg-orange-50" />
-            <StatCard title="Email Logins" value={emailUsers || 0} icon={<Mail className="w-6 h-6 text-indigo-600" />} bgColor="bg-indigo-50" />
-            <StatCard title="Phone Logins" value={phoneUsers || 0} icon={<Smartphone className="w-6 h-6 text-cyan-600" />} bgColor="bg-cyan-50" />
+            <StatCard title="Google Logins" value={stats.google_users || 0} icon={<Globe className="w-6 h-6 text-orange-600" />} bgColor="bg-orange-50" />
+            <StatCard title="Email Logins" value={stats.email_users || 0} icon={<Mail className="w-6 h-6 text-indigo-600" />} bgColor="bg-indigo-50" />
+            <StatCard title="Phone Logins" value={stats.phone_users || 0} icon={<Smartphone className="w-6 h-6 text-cyan-600" />} bgColor="bg-cyan-50" />
           </div>
         </div>
 

@@ -33,15 +33,18 @@ DROP TABLE IF EXISTS roles CASCADE;
 -- IDENTITY & PROFILES
 -- ==========================================
 
--- 1. Profiles Table (Public Identity linked to auth.users)
+-- 1. Profiles Table (Public Identity)
 CREATE TABLE profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    auth_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    firebase_uid VARCHAR(255) UNIQUE,
     full_name VARCHAR(200),
     email VARCHAR(255) UNIQUE,
     phone VARCHAR(20) UNIQUE,
     role VARCHAR(50) DEFAULT 'user',
     account_type VARCHAR(50), -- 'individual' or 'organization'
-    provider VARCHAR(50) DEFAULT 'email',
+    provider VARCHAR(50), -- 'email', 'google', 'firebase'
+    verified BOOLEAN DEFAULT false,
     profile_completed BOOLEAN DEFAULT false,
     photo TEXT,
     bio TEXT,
@@ -54,28 +57,6 @@ CREATE TABLE profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Trigger to create profile on signup
-CREATE OR REPLACE FUNCTION public.handle_new_user() 
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, phone, full_name, provider)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    NEW.phone,
-    NEW.raw_user_meta_data->>'full_name',
-    COALESCE(NEW.raw_user_meta_data->>'provider', 'email')
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
-
 
 -- 2. Professional Identities Table (Category Selection)
 CREATE TABLE professional_identities (
