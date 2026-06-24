@@ -9,8 +9,8 @@ export default function CountdownTimer() {
   useEffect(() => {
     setMounted(true);
     
-    // Calculate the next 15-day interval end date based on actual time
-    const epoch = new Date("2024-01-01T00:00:00Z").getTime();
+    // Using June 24, 2026 as epoch so it starts fresh at ~15 days for you now
+    const epoch = new Date("2026-06-24T00:00:00Z").getTime();
     const intervalMs = 15 * 24 * 60 * 60 * 1000;
     
     const calculateTimeLeft = () => {
