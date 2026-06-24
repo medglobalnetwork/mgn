@@ -5,7 +5,7 @@ import { Stethoscope, Activity, Heart, Cross, ShieldPlus, Syringe } from "lucide
 import LogoLoop from "./LogoLoop";
 
 const hospitals = [
-  { name: "Apollo Hospitals", icon: Activity },
+  { name: "City Hospital", icon: Activity },
   { name: "Fortis Healthcare", icon: Heart },
   { name: "Max Healthcare", icon: Stethoscope },
   { name: "Medanta", icon: ShieldPlus },

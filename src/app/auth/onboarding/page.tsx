@@ -301,7 +301,7 @@ function OnboardingContent() {
 
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-1">Professional Headline</label>
-                    <input type="text" value={headline} onChange={e => setHeadline(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="e.g. Orthopedic Surgeon at Apollo" />
+                    <input type="text" value={headline} onChange={e => setHeadline(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0052CC] outline-none" placeholder="e.g. Orthopedic Surgeon at City Hospital" />
                   </div>
 
                   <div>

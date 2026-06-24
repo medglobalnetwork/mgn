@@ -15,7 +15,7 @@ const MOCK_SUGGESTIONS = [
   { id: 3, type: "Course", title: "Advanced ECG Interpretation", subtitle: "Certification", icon: "book" },
   { id: 4, type: "Organization", title: "AIIMS New Delhi", subtitle: "Hospital", icon: "building" },
   { id: 5, type: "Professional", title: "Dr. Rajiv Kumar", subtitle: "Neurologist", icon: "user" },
-  { id: 6, type: "Job", title: "Resident Medical Officer", subtitle: "Apollo Hospitals", icon: "briefcase" },
+  { id: 6, type: "Job", title: "Resident Medical Officer", subtitle: "City Hospital", icon: "briefcase" },
 ];
 
 export default function Navbar() {

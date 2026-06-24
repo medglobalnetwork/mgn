@@ -183,7 +183,7 @@ export default function HowItWorksPage() {
                           <span className="text-[10px] font-bold text-gray-700">Senior Doctor</span>
                           <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                        </div>
-                       <div className="text-[8px] text-gray-400 mb-2">Apollo Hospitals</div>
+                       <div className="text-[8px] text-gray-400 mb-2">City Hospital</div>
                        <div className="inline-flex items-center gap-1 bg-green-50 text-green-600 px-1.5 py-0.5 rounded text-[8px] font-bold">
                           <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Full-time
                        </div>
@@ -264,7 +264,7 @@ export default function HowItWorksPage() {
          <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <p className="text-sm font-bold text-gray-500 mb-8">Trusted by 10,000+ Healthcare Professionals and Organizations</p>
             <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-               <div className="text-2xl font-black text-gray-800 flex items-center gap-2"><div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center text-white"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/></svg></div> Apollo</div>
+               <div className="text-2xl font-black text-gray-800 flex items-center gap-2"><div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center text-white"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/></svg></div> Hospital</div>
                <div className="text-2xl font-black text-gray-800 flex items-center gap-2"><span className="text-blue-600 text-3xl">*</span> MAX</div>
                <div className="text-2xl font-black text-gray-800 flex items-center gap-2"><div className="w-8 h-8 rounded-full border-4 border-gray-800"></div> AIIMS</div>
                <div className="text-2xl font-black text-gray-800 flex items-center gap-2"><div className="w-6 h-6 bg-green-600 rotate-45"></div> Fortis</div>
