@@ -2,29 +2,40 @@
 
 import { useState, useEffect } from "react";
 
-interface CountdownTimerProps {
-  days: number;
-  hours: number;
-  minutes: number;
-}
-
-export default function CountdownTimer({ days = 12, hours = 8, minutes = 22 }: CountdownTimerProps) {
-  const [timeLeft, setTimeLeft] = useState({ days, hours, minutes, seconds: 59 });
+export default function CountdownTimer() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    
+    // Calculate the next 15-day interval end date based on actual time
+    const epoch = new Date("2024-01-01T00:00:00Z").getTime();
+    const intervalMs = 15 * 24 * 60 * 60 * 1000;
+    
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const elapsed = now - epoch;
+      const currentInterval = Math.floor(elapsed / intervalMs);
+      const nextIntervalEnd = epoch + (currentInterval + 1) * intervalMs;
+      
+      const difference = nextIntervalEnd - now;
+      
+      if (difference > 0) {
+        return {
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60)
+        };
+      }
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        } else if (prev.days > 0) {
-          return { ...prev, days: prev.days - 1, hours: 23, minutes: 59, seconds: 59 };
-        }
-        return prev;
-      });
+      setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timer);
@@ -32,26 +43,37 @@ export default function CountdownTimer({ days = 12, hours = 8, minutes = 22 }: C
 
   const formatNumber = (num: number) => num.toString().padStart(2, '0');
 
+  if (!mounted) return <div className="h-[90px] mt-8 w-full"></div>;
+
   return (
-    <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
-      <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
-        <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.days)}</span>
-        <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Days</span>
+    <div className="flex flex-col gap-3 mt-8">
+      <div className="text-xs font-bold text-[#183670] uppercase tracking-wider flex items-center gap-2">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+        </span>
+        Early Access Closing In:
       </div>
-      <span className="text-2xl font-bold text-gray-300">:</span>
-      <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
-        <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.hours)}</span>
-        <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Hours</span>
-      </div>
-      <span className="text-2xl font-bold text-gray-300">:</span>
-      <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
-        <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.minutes)}</span>
-        <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Mins</span>
-      </div>
-      <span className="text-2xl font-bold text-gray-300 hidden sm:block">:</span>
-      <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px] hidden sm:flex">
-        <span className="text-xl sm:text-2xl font-black text-[#00A67E] tabular-nums">{formatNumber(timeLeft.seconds)}</span>
-        <span className="text-[10px] sm:text-xs font-bold text-[#00A67E] uppercase">Secs</span>
+      <div className="flex items-center gap-2 sm:gap-4 justify-start">
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
+          <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.days)}</span>
+          <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Days</span>
+        </div>
+        <span className="text-2xl font-bold text-gray-300">:</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
+          <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.hours)}</span>
+          <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Hours</span>
+        </div>
+        <span className="text-2xl font-bold text-gray-300">:</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
+          <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.minutes)}</span>
+          <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Mins</span>
+        </div>
+        <span className="text-2xl font-bold text-gray-300 hidden sm:block">:</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px] hidden sm:flex">
+          <span className="text-xl sm:text-2xl font-black text-[#00A67E] tabular-nums">{formatNumber(timeLeft.seconds)}</span>
+          <span className="text-[10px] sm:text-xs font-bold text-[#00A67E] uppercase">Secs</span>
+        </div>
       </div>
     </div>
   );

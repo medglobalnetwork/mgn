@@ -4,6 +4,7 @@ import { Users, BookOpen, TrendingUp, Star, Briefcase, GraduationCap, ShoppingCa
 import CountUp from "@/components/CountUp";
 import SplitText from "@/components/SplitText";
 import ShinyText from "@/components/ShinyText";
+import CountdownTimer from "@/components/CountdownTimer";
 import { getSupabaseServer } from "@/lib/supabase";
 
 export const revalidate = 0;
@@ -61,6 +62,8 @@ export default async function Home() {
                 Explore Features
               </Link>
             </div>
+
+            <CountdownTimer />
 
             <div className="flex items-center gap-2 text-gray-500 font-medium mt-8 text-sm">
               <ShieldCheck className="w-5 h-5 text-[#183670]" />
