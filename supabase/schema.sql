@@ -267,3 +267,12 @@ CREATE TRIGGER update_posts_modtime BEFORE UPDATE ON posts FOR EACH ROW EXECUTE 
 CREATE TRIGGER update_jobs_modtime BEFORE UPDATE ON jobs FOR EACH ROW EXECUTE FUNCTION update_modified_column();
 CREATE TRIGGER update_courses_modtime BEFORE UPDATE ON courses FOR EACH ROW EXECUTE FUNCTION update_modified_column();
 CREATE TRIGGER update_products_modtime BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+-- ==========================================
+-- STORAGE BUCKETS (Must be run in Supabase SQL Editor as Superuser)
+-- ==========================================
+-- insert into storage.buckets (id, name, public) values ('post_images', 'post_images', true);
+-- create policy "Public Access" on storage.objects for select using ( bucket_id = 'post_images' );
+-- create policy "Authenticated users can upload" on storage.objects for insert to authenticated with check ( bucket_id = 'post_images' );
+-- create policy "Users can update own images" on storage.objects for update to authenticated using ( bucket_id = 'post_images' and owner = auth.uid() );
+-- create policy "Users can delete own images" on storage.objects for delete to authenticated using ( bucket_id = 'post_images' and owner = auth.uid() );

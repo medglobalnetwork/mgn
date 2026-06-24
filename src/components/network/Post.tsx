@@ -56,6 +56,24 @@ export default function Post({ post }: { post: FeedPost }) {
     }
   };
 
+  const handleShare = async () => {
+    const postUrl = `${window.location.origin}/dashboard/network?post=${post.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Post on MGN',
+          text: `Check out this post by ${post.profiles?.full_name}`,
+          url: postUrl,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(postUrl);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   if (isDeleting) return null;
 
   const authorName = post.profiles?.full_name || "Unknown User";
@@ -163,7 +181,10 @@ export default function Post({ post }: { post: FeedPost }) {
           <MessageSquare className={`w-5 h-5 ${showComments ? 'fill-current' : ''}`} />
           Comment
         </button>
-        <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700">
+        <button 
+          onClick={handleShare}
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+        >
           <Share2 className="w-5 h-5" />
           Share
         </button>

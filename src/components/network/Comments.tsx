@@ -6,9 +6,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import { Send } from "lucide-react";
 
+interface CommentType {
+  id: string;
+  content: string;
+  created_at: string;
+  profiles: {
+    full_name: string;
+    avatar_url: string;
+    primary_category: string | null;
+  } | null;
+}
+
 interface CommentProps {
   postId: string;
-  comments: { id: string }[]; // You can expand this if you fetch comment content
+  comments: CommentType[];
+}
+
+function timeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + "y";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + "mo";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + "d";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + "h";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + "m";
+  return Math.floor(seconds) + "s";
 }
 
 export default function Comments({ postId, comments }: CommentProps) {
@@ -36,11 +64,35 @@ export default function Comments({ postId, comments }: CommentProps) {
 
   return (
     <div className="pt-3 mt-3 border-t border-gray-50">
-      {/* Existing Comments (Placeholder - need to fetch comment author details in query to display) */}
+      {/* Existing Comments */}
       {comments.length > 0 && (
         <div className="mb-4">
           <p className="text-[12px] text-gray-500 font-medium mb-3">View all {comments.length} comments</p>
-          {/* We would map through populated comments here */}
+          <div className="flex flex-col gap-4">
+            {comments.map((comment) => {
+              const authorName = comment.profiles?.full_name || "Unknown User";
+              const authorAvatar = comment.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0052CC&color=fff`;
+              return (
+                <div key={comment.id} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden relative shrink-0">
+                    <Image src={authorAvatar} alt={authorName} fill className="object-cover" unoptimized />
+                  </div>
+                  <div className="flex-1 bg-gray-50 rounded-2xl rounded-tl-none p-3 relative">
+                    <div className="flex items-start justify-between mb-1">
+                      <div>
+                        <h4 className="text-[13px] font-bold text-[#0B1B3D] leading-tight">{authorName}</h4>
+                        {comment.profiles?.primary_category && (
+                          <p className="text-[10px] text-gray-500 leading-tight">{comment.profiles.primary_category}</p>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-400 shrink-0 ml-2">{timeAgo(comment.created_at)}</span>
+                    </div>
+                    <p className="text-[13px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -18,7 +18,16 @@ export interface FeedPost {
     primary_category: string | null;
   };
   likes: { id: string; user_id: string }[];
-  comments: { id: string }[];
+  comments: {
+    id: string;
+    content: string;
+    created_at: string;
+    profiles: {
+      full_name: string;
+      avatar_url: string;
+      primary_category: string | null;
+    } | null;
+  }[];
 }
 
 export async function createPostAction(content: string, media_url: string | null, userId: string) {
@@ -56,7 +65,12 @@ export async function getAllPosts(): Promise<FeedPost[]> {
       *,
       profiles!posts_author_id_fkey(id, full_name, avatar_url, primary_category),
       likes(id, user_id),
-      comments(id)
+      comments(
+        id,
+        content,
+        created_at,
+        profiles!comments_author_id_fkey(full_name, avatar_url, primary_category)
+      )
     `)
     .order("created_at", { ascending: false });
 
