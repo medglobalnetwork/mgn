@@ -55,23 +55,23 @@ export default function CountdownTimer() {
         Early Access Closing In:
       </div>
       <div className="flex items-center gap-2 sm:gap-4 justify-start">
-        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
-          <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.days)}</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[50px] sm:min-w-[60px]">
+          <span className="text-lg sm:text-xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.days)}</span>
           <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Days</span>
         </div>
-        <span className="text-2xl font-bold text-gray-300">:</span>
-        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
-          <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.hours)}</span>
+        <span className="text-xl sm:text-2xl font-bold text-gray-300">:</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[50px] sm:min-w-[60px]">
+          <span className="text-lg sm:text-xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.hours)}</span>
           <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Hours</span>
         </div>
-        <span className="text-2xl font-bold text-gray-300">:</span>
-        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px]">
-          <span className="text-xl sm:text-2xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.minutes)}</span>
+        <span className="text-xl sm:text-2xl font-bold text-gray-300">:</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[50px] sm:min-w-[60px]">
+          <span className="text-lg sm:text-xl font-black text-[#0B1B3D] tabular-nums">{formatNumber(timeLeft.minutes)}</span>
           <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">Mins</span>
         </div>
-        <span className="text-2xl font-bold text-gray-300 hidden sm:block">:</span>
-        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[60px] hidden sm:flex">
-          <span className="text-xl sm:text-2xl font-black text-[#00A67E] tabular-nums">{formatNumber(timeLeft.seconds)}</span>
+        <span className="text-xl sm:text-2xl font-bold text-gray-300 hidden sm:block">:</span>
+        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2 min-w-[50px] sm:min-w-[60px] hidden sm:flex">
+          <span className="text-lg sm:text-xl font-black text-[#00A67E] tabular-nums">{formatNumber(timeLeft.seconds)}</span>
           <span className="text-[10px] sm:text-xs font-bold text-[#00A67E] uppercase">Secs</span>
         </div>
       </div>
