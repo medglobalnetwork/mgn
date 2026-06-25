@@ -37,7 +37,7 @@ export default function Post({ post }: { post: FeedPost }) {
     if (!user) return;
     try {
       // Optimistic UI could be implemented here
-      await likePostAction(post.id, user.id);
+      await likePostAction(user.id, post.id, isLiked);
     } catch (error) {
       console.error("Failed to like:", error);
     }
