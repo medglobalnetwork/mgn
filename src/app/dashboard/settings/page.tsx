@@ -159,6 +159,12 @@ export default function SettingsPage() {
         >
           <Bell className="w-4 h-4" /> Notifications
         </button>
+        <button 
+          onClick={() => setActiveTab("privacy")}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-medium transition-colors text-left ${activeTab === "privacy" ? "bg-blue-50 text-[#0052CC]" : "text-gray-600 hover:bg-gray-50"}`}
+        >
+          <Shield className="w-4 h-4" /> Privacy Settings
+        </button>
       </div>
 
       {/* Main Settings Content */}
@@ -374,18 +380,93 @@ export default function SettingsPage() {
         )}
 
         {activeTab === "security" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center h-64">
-            <Shield className="w-12 h-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-bold text-[#0B1B3D] mb-2">Security & Login</h3>
-            <p className="text-sm text-gray-500">Security settings are currently managed via Firebase Auth.</p>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield className="w-5 h-5 text-[#0B1B3D]" />
+              <h3 className="text-lg font-bold text-[#0B1B3D]">Security & Login</h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-sm font-bold text-gray-700 mb-2">Change Password</h4>
+                <div className="flex flex-col gap-3">
+                  <input type="password" placeholder="Current Password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#0052CC]" />
+                  <input type="password" placeholder="New Password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#0052CC]" />
+                  <input type="password" placeholder="Confirm New Password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#0052CC]" />
+                  <button className="bg-[#0B1B3D] text-white px-4 py-2 rounded-lg text-sm w-fit mt-2">Update Password</button>
+                </div>
+              </div>
+              
+              <div className="border-t border-gray-100 pt-6">
+                <h4 className="text-sm font-bold text-gray-700 mb-2">Two-Factor Authentication</h4>
+                <p className="text-xs text-gray-500 mb-4">Add an extra layer of security to your account.</p>
+                <button className="border border-[#0052CC] text-[#0052CC] px-4 py-2 rounded-lg text-sm font-bold">Enable 2FA</button>
+              </div>
+            </div>
           </div>
         )}
 
         {activeTab === "notifications" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center h-64">
-            <Bell className="w-12 h-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-bold text-[#0B1B3D] mb-2">Notification Preferences</h3>
-            <p className="text-sm text-gray-500">Email and push notification settings will appear here.</p>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-5 h-5 text-[#0B1B3D]" />
+              <h3 className="text-lg font-bold text-[#0B1B3D]">Notification Preferences</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                <div>
+                  <h4 className="text-sm font-bold text-[#0B1B3D]">Email Notifications</h4>
+                  <p className="text-xs text-gray-500">Receive updates about your network via email</p>
+                </div>
+                <input type="checkbox" defaultChecked className="w-4 h-4 rounded text-[#0052CC]" />
+              </div>
+              
+              <div className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                <div>
+                  <h4 className="text-sm font-bold text-[#0B1B3D]">Push Notifications</h4>
+                  <p className="text-xs text-gray-500">Receive real-time alerts on your device</p>
+                </div>
+                <input type="checkbox" defaultChecked className="w-4 h-4 rounded text-[#0052CC]" />
+              </div>
+
+              <div className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                <div>
+                  <h4 className="text-sm font-bold text-[#0B1B3D]">Marketing Emails</h4>
+                  <p className="text-xs text-gray-500">Receive offers and promotions from MGN</p>
+                </div>
+                <input type="checkbox" className="w-4 h-4 rounded text-[#0052CC]" />
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {activeTab === "privacy" && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield className="w-5 h-5 text-[#0B1B3D]" />
+              <h3 className="text-lg font-bold text-[#0B1B3D]">Privacy Settings</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-[#0B1B3D] mb-1">Profile Visibility</label>
+                <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none">
+                  <option>Public (Everyone)</option>
+                  <option>Network Only</option>
+                  <option>Private</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-[#0B1B3D] mb-1">Who can message you?</label>
+                <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none">
+                  <option>Everyone</option>
+                  <option>Connections Only</option>
+                  <option>No one</option>
+                </select>
+              </div>
+            </div>
           </div>
         )}
       </div>

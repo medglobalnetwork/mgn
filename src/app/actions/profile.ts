@@ -1,50 +1,56 @@
 "use server";
 
-import { getSupabaseServer } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface ProfileData {
   id: string;
   full_name: string;
-  headline: string | null;
-  bio: string | null;
-  city: string | null;
-  country: string | null;
-  avatar_url: string | null;
-  primary_category: string | null;
+  avatar_url: string;
+  headline: string;
+  bio: string;
+  city: string;
+  country: string;
+  primary_category?: string;
+  verified?: boolean;
 }
 
 export interface ExperienceData {
   id: string;
-  company_name: string;
   title: string;
-  location: string | null;
-  start_date: string | null;
+  company_name: string;
+  start_date: string;
   end_date: string | null;
   is_current: boolean;
+  location: string | null;
   description: string | null;
 }
 
 export interface EducationData {
   id: string;
   institution_name: string;
-  degree: string | null;
+  degree: string;
   field_of_study: string | null;
   start_date: string | null;
   end_date: string | null;
   is_current: boolean;
 }
 
-export async function getUserProfile(userId: string) {
-  const supabase = getSupabaseServer();
-  
-  if (!userId) return null;
+export interface FullProfile extends ProfileData {
+  experience: ExperienceData[];
+  education: EducationData[];
+}
 
-  // Fetch basic profile
+export async function getProfileData(profileId: string) {
+  // 1. Fetch main profile
   const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, full_name, headline, bio, city, country, avatar_url, primary_category")
-    .eq("id", userId)
+    .from('profiles')
+    .select('*')
+    .eq('id', profileId)
     .single();
 
   if (profileError || !profile) {
@@ -52,88 +58,105 @@ export async function getUserProfile(userId: string) {
     return null;
   }
 
-  // Fetch experience
+  // 2. Fetch experience
   const { data: experience } = await supabase
-    .from("experience")
-    .select("*")
-    .eq("user_id", userId)
-    .order("start_date", { ascending: false });
+    .from('experience')
+    .select('*')
+    .eq('user_id', profileId)
+    .order('start_date', { ascending: false });
 
-  // Fetch education
+  // 3. Fetch education
   const { data: education } = await supabase
-    .from("education")
-    .select("*")
-    .eq("user_id", userId)
-    .order("start_date", { ascending: false });
+    .from('education')
+    .select('*')
+    .eq('user_id', profileId)
+    .order('start_date', { ascending: false });
+
+  // 4. Fetch trust score
+  const { data: trustScore } = await supabase
+    .from('trust_scores')
+    .select('total_score, trust_level')
+    .eq('user_id', profileId)
+    .single();
+
+  // 5. Fetch Connections Count
+  const { count: connectionsCount } = await supabase
+    .from('connections')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'accepted')
+    .or(`requester_id.eq.${profileId},receiver_id.eq.${profileId}`);
 
   return {
     ...profile,
-    experience: (experience || []) as ExperienceData[],
-    education: (education || []) as EducationData[],
+    experience: experience || [],
+    education: education || [],
+    trust_score: trustScore?.total_score || 0,
+    trust_level: trustScore?.trust_level || 'NEW',
+    connections_count: connectionsCount || 0,
+    followers_count: connectionsCount || 0,
   };
 }
 
-export async function updateProfileInfo(userId: string, data: Partial<ProfileData>) {
-  const supabase = getSupabaseServer();
-  
-  if (!userId) throw new Error("Unauthorized");
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      headline: data.headline,
-      bio: data.bio,
-      city: data.city,
-      country: data.country,
-    })
-    .eq("id", userId);
-
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard/settings");
+export async function getUserProfile(userId: string) {
+  return getProfileData(userId);
 }
 
-export async function addExperience(userId: string, data: Omit<ExperienceData, "id">) {
-  const supabase = getSupabaseServer();
-  if (!userId) throw new Error("Unauthorized");
-
-  const { error } = await supabase.from("experience").insert({ ...data, user_id: userId });
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard/settings");
+export async function updateProfileInfo(userId: string, data: any) {
+  const { error } = await supabase.from('profiles').update(data).eq('id', userId);
+  if (error) throw error;
+  revalidatePath('/dashboard/settings');
 }
 
-export async function deleteExperience(userId: string, expId: string) {
-  const supabase = getSupabaseServer();
-  if (!userId) throw new Error("Unauthorized");
-
-  const { error } = await supabase.from("experience").delete().eq("id", expId).eq("user_id", userId);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard/settings");
+export async function addExperience(userId: string, data: any) {
+  const { error } = await supabase.from('experience').insert({ ...data, user_id: userId });
+  if (error) throw error;
+  revalidatePath('/dashboard/settings');
 }
 
-export async function addEducation(userId: string, data: Omit<EducationData, "id">) {
-  const supabase = getSupabaseServer();
-  if (!userId) throw new Error("Unauthorized");
-
-  const { error } = await supabase.from("education").insert({ ...data, user_id: userId });
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard/settings");
+export async function deleteExperience(id: string) {
+  const { error } = await supabase.from('experience').delete().eq('id', id);
+  if (error) throw error;
+  revalidatePath('/dashboard/settings');
 }
 
-export async function deleteEducation(userId: string, eduId: string) {
-  const supabase = getSupabaseServer();
-  if (!userId) throw new Error("Unauthorized");
+export async function addEducation(userId: string, data: any) {
+  const { error } = await supabase.from('education').insert({ ...data, user_id: userId });
+  if (error) throw error;
+  revalidatePath('/dashboard/settings');
+}
 
-  const { error } = await supabase.from("education").delete().eq("id", eduId).eq("user_id", userId);
-  if (error) throw new Error(error.message);
+export async function deleteEducation(id: string) {
+  const { error } = await supabase.from('education').delete().eq('id', id);
+  if (error) throw error;
+  revalidatePath('/dashboard/settings');
+}
 
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard/settings");
+export async function getDashboardStats(userId: string) {
+  // Connections count
+  const { count: connectionsCount } = await supabase
+    .from('connections')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'accepted')
+    .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`);
+
+  // Profile views count
+  const { count: viewsCount } = await supabase
+    .from('profile_views')
+    .select('*', { count: 'exact', head: true })
+    .eq('viewed_profile_id', userId);
+
+  return {
+    connections: connectionsCount || 0,
+    views: viewsCount || 0
+  };
+}
+
+export async function getTrendingTopics() {
+  const { data: popular } = await supabase
+    .from('popular_queries')
+    .select('*')
+    .order('count', { ascending: false })
+    .limit(5);
+
+  return popular || [];
 }

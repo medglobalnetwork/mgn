@@ -2,19 +2,14 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { getUserProfile, ProfileData, ExperienceData, EducationData } from "@/app/actions/profile";
+import { getProfileData } from "@/app/actions/profile";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Briefcase, GraduationCap, Calendar, Edit2 } from "lucide-react";
 
-interface FullProfile extends ProfileData {
-  experience: ExperienceData[];
-  education: EducationData[];
-}
-
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<FullProfile | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,8 +17,8 @@ export default function ProfilePage() {
     
     const fetchProfile = async () => {
       try {
-        const data = await getUserProfile(user.id);
-        if (data) setProfile(data as FullProfile);
+        const data = await getProfileData(user.id);
+        if (data) setProfile(data);
       } catch (error) {
         console.error("Failed to fetch profile", error);
       } finally {

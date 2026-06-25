@@ -34,7 +34,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('account_type, verified, created_at')
-        .eq('id', session.user.id)
+        .eq('auth_id', session.user.id)
         .single();
         
       // If no profile or no account_type, redirect to onboarding
