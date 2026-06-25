@@ -7,7 +7,7 @@ import { MapPin, Briefcase, Award, GraduationCap, ShieldCheck, UserPlus, Message
 import { getProfileData } from "@/app/actions/profile";
 
 export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { user, supabase } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const unwrappedParams = use(params);
