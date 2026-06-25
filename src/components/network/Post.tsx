@@ -30,7 +30,7 @@ export default function Post({ post }: { post: FeedPost }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  const isLiked = user ? post.likes.some(l => l.user_id === user.id) : false;
+  const isLiked = user ? post.likes.some((l: any) => l.user_id === user.id) : false;
   const isOwner = user?.id === post.author_id;
 
   const handleLike = async () => {
