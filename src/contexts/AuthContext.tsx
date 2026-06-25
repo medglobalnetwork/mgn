@@ -22,6 +22,8 @@ export type AppUser = {
     full_name?: string;
     avatar_url?: string;
     provider?: string;
+    headline?: string;
+    primary_category?: string;
   };
 };
 
