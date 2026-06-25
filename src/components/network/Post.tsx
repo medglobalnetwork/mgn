@@ -49,7 +49,7 @@ export default function Post({ post }: { post: FeedPost }) {
     
     setIsDeleting(true);
     try {
-      await deletePostAction(post.id, user.id);
+      await deletePostAction(post.id);
     } catch (error) {
       console.error("Failed to delete:", error);
       setIsDeleting(false);
