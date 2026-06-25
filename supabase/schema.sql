@@ -1431,34 +1431,53 @@ ALTER TABLE active_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE data_exports ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: users can read all, update own
+DROP POLICY IF EXISTS "Profiles are publicly readable" ON profiles;
 CREATE POLICY "Profiles are publicly readable" ON profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = auth_id);
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = auth_id);
 
 -- Posts: read public posts, write own
+DROP POLICY IF EXISTS "Public posts are readable" ON posts;
 CREATE POLICY "Public posts are readable" ON posts FOR SELECT USING (visibility = 'PUBLIC' OR author_id IN (SELECT auth_id FROM profiles WHERE id = (SELECT requester_id FROM connections WHERE receiver_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()) AND status = 'accepted')) OR author_id = (SELECT auth_id FROM profiles WHERE id = posts.author_id));
+DROP POLICY IF EXISTS "Users can create posts" ON posts;
 CREATE POLICY "Users can create posts" ON posts FOR INSERT WITH CHECK (auth.uid() = (SELECT auth_id FROM profiles WHERE id = author_id));
+DROP POLICY IF EXISTS "Authors can update own posts" ON posts;
 CREATE POLICY "Authors can update own posts" ON posts FOR UPDATE USING (auth.uid() = (SELECT auth_id FROM profiles WHERE id = author_id));
+DROP POLICY IF EXISTS "Authors can delete own posts" ON posts;
 CREATE POLICY "Authors can delete own posts" ON posts FOR DELETE USING (auth.uid() = (SELECT auth_id FROM profiles WHERE id = author_id));
 
 -- Comments: readable, own CRUD
+DROP POLICY IF EXISTS "Comments are readable" ON comments;
 CREATE POLICY "Comments are readable" ON comments FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can create comments" ON comments;
 CREATE POLICY "Users can create comments" ON comments FOR INSERT WITH CHECK (auth.uid() = (SELECT auth_id FROM profiles WHERE id = author_id));
 
 -- Messages: only conversation members
+DROP POLICY IF EXISTS "Members can view messages" ON messages;
 CREATE POLICY "Members can view messages" ON messages FOR SELECT USING (conversation_id IN (SELECT conversation_id FROM conversation_members WHERE user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid())));
+DROP POLICY IF EXISTS "Members can send messages" ON messages;
 CREATE POLICY "Members can send messages" ON messages FOR INSERT WITH CHECK (conversation_id IN (SELECT conversation_id FROM conversation_members WHERE user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid())));
 
 -- Notifications: own only
+DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
 CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
 
 -- Settings: own only
+DROP POLICY IF EXISTS "Users can view own preferences" ON user_preferences;
 CREATE POLICY "Users can view own preferences" ON user_preferences FOR SELECT USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can update own preferences" ON user_preferences;
 CREATE POLICY "Users can update own preferences" ON user_preferences FOR UPDATE USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can view own security" ON security_settings;
 CREATE POLICY "Users can view own security" ON security_settings FOR SELECT USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can update own security" ON security_settings;
 CREATE POLICY "Users can update own security" ON security_settings FOR UPDATE USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can view own privacy" ON privacy_settings;
 CREATE POLICY "Users can view own privacy" ON privacy_settings FOR SELECT USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can update own privacy" ON privacy_settings;
 CREATE POLICY "Users can update own privacy" ON privacy_settings FOR UPDATE USING (user_id = (SELECT id FROM profiles WHERE auth_id = auth.uid()));
 
 -- ==========================================
@@ -1514,7 +1533,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER init_profile_subsystems AFTER INSERT ON profiles FOR EACH ROW EXECUTE FUNCTION handle_new_profile_trust();
 
 -- ==========================================
 -- STORAGE BUCKETS (Run in Supabase SQL Editor)

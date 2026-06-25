@@ -84,7 +84,7 @@ export default function SettingsPage() {
     if (!user) return;
     startTransition(async () => {
       try {
-        await deleteExperience(user.id, expId);
+        await deleteExperience(expId);
         await fetchProfile();
       } catch (error) {
         console.error(error);
@@ -120,7 +120,7 @@ export default function SettingsPage() {
     if (!user) return;
     startTransition(async () => {
       try {
-        await deleteEducation(user.id, eduId);
+        await deleteEducation(eduId);
         await fetchProfile();
       } catch (error) {
         console.error(error);
