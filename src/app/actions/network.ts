@@ -1,150 +1,160 @@
 "use server";
 
-import { getSupabaseServer } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 
-// Define TypeScript interfaces based on our Supabase schema
-export interface FeedPost {
-  id: string;
-  author_id: string;
-  content: string;
-  media_url: string | null;
-  created_at: string;
-  updated_at: string;
-  profiles: {
-    id: string;
-    full_name: string;
-    avatar_url: string;
-    primary_category: string | null;
-  };
-  likes: { id: string; user_id: string }[];
-  comments: {
-    id: string;
-    content: string;
-    created_at: string;
-    profiles: {
-      full_name: string;
-      avatar_url: string;
-      primary_category: string | null;
-    } | null;
-  }[];
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function createPostAction(content: string, media_url: string | null, userId: string) {
-  const supabase = getSupabaseServer();
+export async function getSuggestedConnections(userId: string) {
+  // Get all connections where the user is either requester or receiver
+  const { data: connections } = await supabase
+    .from('connections')
+    .select('requester_id, receiver_id')
+    .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`);
 
-  if (!userId) throw new Error("User must be authenticated to post.");
-  if (!content) throw new Error("Post content cannot be empty.");
-
-  const { data, error } = await supabase
-    .from("posts")
-    .insert({
-      author_id: userId,
-      content,
-      media_url,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creating post:", error);
-    throw new Error(error.message);
+  // Extract IDs to exclude
+  const excludeIds = [userId];
+  if (connections) {
+    connections.forEach((conn: any) => {
+      excludeIds.push(conn.requester_id);
+      excludeIds.push(conn.receiver_id);
+    });
   }
 
-  revalidatePath("/dashboard/network");
-  return data;
-}
-
-export async function getAllPosts(): Promise<FeedPost[]> {
-  const supabase = getSupabaseServer();
-
-  // We use Supabase relationship querying to get the author profile, likes, and comments count.
-  const { data, error } = await supabase
-    .from("posts")
-    .select(`
-      *,
-      profiles!posts_author_id_fkey(id, full_name, avatar_url, primary_category),
-      likes(id, user_id),
-      comments(
-        id,
-        content,
-        created_at,
-        profiles!comments_author_id_fkey(full_name, avatar_url, primary_category)
-      )
-    `)
-    .order("created_at", { ascending: false });
+  // Get users not in exclude list
+  // Limit to 20 suggestions
+  const { data: suggestions, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, headline, city, primary_category')
+    .not('id', 'in', `(${excludeIds.join(',')})`)
+    .limit(20);
 
   if (error) {
-    console.error("Error fetching posts:", error);
+    console.error("Error fetching suggestions:", error);
     return [];
   }
 
-  return data as unknown as FeedPost[];
+  return suggestions || [];
 }
 
-export async function deletePostAction(postId: string, userId: string) {
-  const supabase = getSupabaseServer();
-
-  if (!userId) throw new Error("User must be authenticated.");
-
-  // Verify ownership before deletion
-  const { data: post } = await supabase.from("posts").select("author_id").eq("id", postId).single();
-  
-  if (!post) throw new Error("Post not found.");
-  if (post.author_id !== userId) throw new Error("Not authorized to delete this post.");
-
-  const { error } = await supabase.from("posts").delete().eq("id", postId);
+export async function getConnectionRequests(userId: string) {
+  const { data: requests, error } = await supabase
+    .from('connections')
+    .select(`
+      id,
+      created_at,
+      profiles!connections_requester_id_fkey (
+        id,
+        full_name,
+        avatar_url,
+        headline
+      )
+    `)
+    .eq('receiver_id', userId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error deleting post:", error);
-    throw new Error(error.message);
+    console.error("Error fetching requests:", error);
+    return [];
   }
 
-  revalidatePath("/dashboard/network");
+  return requests || [];
 }
 
-export async function likePostAction(postId: string, userId: string) {
-  const supabase = getSupabaseServer();
+export async function getConnectedNetwork(userId: string) {
+  const { data: connections, error } = await supabase
+    .from('connections')
+    .select(`
+      id,
+      requester_id,
+      receiver_id,
+      created_at,
+      requester:profiles!connections_requester_id_fkey(id, full_name, avatar_url, headline),
+      receiver:profiles!connections_receiver_id_fkey(id, full_name, avatar_url, headline)
+    `)
+    .eq('status', 'accepted')
+    .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
+    .order('created_at', { ascending: false });
 
-  if (!userId) throw new Error("User must be authenticated.");
-
-  // Check if already liked
-  const { data: existingLike } = await supabase
-    .from("likes")
-    .select("id")
-    .eq("post_id", postId)
-    .eq("user_id", userId)
-    .single();
-
-  if (existingLike) {
-    // Unlike
-    await supabase.from("likes").delete().eq("id", existingLike.id);
-  } else {
-    // Like
-    await supabase.from("likes").insert({ post_id: postId, user_id: userId });
+  if (error) {
+    console.error("Error fetching connected network:", error);
+    return [];
   }
 
-  revalidatePath("/dashboard/network");
+  // Map to a cleaner format where we just return the 'other' person
+  return (connections || []).map((conn: any) => {
+    const isRequester = conn.requester_id === userId;
+    const profile = isRequester ? conn.receiver : conn.requester;
+    return {
+      connection_id: conn.id,
+      connected_at: conn.created_at,
+      profile
+    };
+  });
 }
 
-export async function createCommentAction(postId: string, content: string, userId: string) {
-  const supabase = getSupabaseServer();
-
-  if (!userId) throw new Error("User must be authenticated.");
-  if (!content) throw new Error("Comment cannot be empty.");
-
+export async function sendConnectionRequest(requesterId: string, receiverId: string) {
   const { error } = await supabase
-    .from("comments")
+    .from('connections')
     .insert({
-      post_id: postId,
-      author_id: userId,
-      content,
+      requester_id: requesterId,
+      receiver_id: receiverId,
+      status: 'pending'
     });
 
   if (error) {
-    console.error("Error creating comment:", error);
-    throw new Error(error.message);
+    console.error("Error sending request:", error);
+    throw error;
   }
 
-  revalidatePath("/dashboard/network");
+  revalidatePath('/dashboard/network');
+  return true;
+}
+
+export async function acceptConnectionRequest(connectionId: string) {
+  const { error } = await supabase
+    .from('connections')
+    .update({ status: 'accepted' })
+    .eq('id', connectionId);
+
+  if (error) {
+    console.error("Error accepting request:", error);
+    throw error;
+  }
+
+  revalidatePath('/dashboard/network');
+  return true;
+}
+
+export async function rejectConnectionRequest(connectionId: string) {
+  const { error } = await supabase
+    .from('connections')
+    .update({ status: 'rejected' })
+    .eq('id', connectionId);
+
+  if (error) {
+    console.error("Error rejecting request:", error);
+    throw error;
+  }
+
+  revalidatePath('/dashboard/network');
+  return true;
+}
+
+export async function removeConnection(connectionId: string) {
+  const { error } = await supabase
+    .from('connections')
+    .delete()
+    .eq('id', connectionId);
+
+  if (error) {
+    console.error("Error removing connection:", error);
+    throw error;
+  }
+
+  revalidatePath('/dashboard/network');
+  return true;
 }
