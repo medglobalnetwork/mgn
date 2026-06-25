@@ -111,8 +111,8 @@ export default function ProfilePage() {
           <p className="text-[14px] text-gray-500 italic">No experience added yet.</p>
         ) : (
           <div className="flex flex-col gap-6">
-            {profile.experience.map((exp, index) => (
-              <div key={exp.id} className="flex gap-4">
+            {profile.experience.map((exp: any, index: number) => (
+              <div key={exp.id || index} className="flex gap-4">
                 <div className="w-12 h-12 bg-gray-100 rounded-md flex flex-shrink-0 items-center justify-center">
                   <Briefcase className="w-6 h-6 text-gray-400" />
                 </div>
@@ -141,11 +141,11 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        {profile.education.length === 0 ? (
+        {profile.education?.length === 0 ? (
           <p className="text-[14px] text-gray-500 italic">No education added yet.</p>
         ) : (
           <div className="flex flex-col gap-6">
-            {profile.education.map((edu, index) => (
+            {profile.education?.map((edu: any, index: number) => (
               <div key={edu.id} className="flex gap-4">
                 <div className="w-12 h-12 bg-gray-100 rounded-md flex flex-shrink-0 items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-gray-400" />
