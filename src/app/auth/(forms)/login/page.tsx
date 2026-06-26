@@ -27,7 +27,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push("/auth/onboarding");
+      router.replace("/auth/onboarding");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Login failed";
       setError(msg);
@@ -42,7 +42,7 @@ export default function LoginPage() {
       setError("");
       await signInWithGoogle();
       // Route to onboarding, which decides if user goes to dashboard or needs setup
-      router.push("/auth/onboarding");
+      router.replace("/auth/onboarding");
     } catch (err: any) {
       setError(err.message);
     } finally {

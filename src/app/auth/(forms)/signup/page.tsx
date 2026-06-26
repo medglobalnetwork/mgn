@@ -71,7 +71,7 @@ export default function SignupPage() {
       setError("");
       await signInWithGoogle();
       // Route to onboarding
-      router.push("/auth/onboarding");
+      router.replace("/auth/onboarding");
     } catch (err: any) {
       setError(err.message);
     } finally {

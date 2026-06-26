@@ -84,38 +84,44 @@ function OnboardingContent() {
         finalPrimaryCategory = "Organization";
         finalSubCategory = orgType;
       } else if (primaryCategory === "Clinical Practitioner") {
-        finalSubCategory = `${qualification} - ${subCategory}`;
+        finalSubCategory = qualification && subCategory ? `${qualification} - ${subCategory}` : subCategory;
       }
 
-      const payload = {
-        id: user.id,
+      // Save directly to Supabase (works from both localhost and Vercel)
+      const updateData: Record<string, unknown> = {
         account_type: accountType,
         primary_category: finalPrimaryCategory,
         sub_category: finalSubCategory,
-        name: name,
+        subcategory: finalSubCategory,
+        full_name: name || user.user_metadata?.full_name || '',
         country: "India",
-        city: city,
-        headline: headline,
-        bio: bio,
-        interests: interestsArray,
-        secondary_roles: [],
-        profile_score: score,
-        badge_color: "gray" // unverified initially
+        profile_completed: true,
+        onboarding_score: 100,
+        completion_score: score,
       };
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const res = await fetch(`${apiUrl}/auth/onboarding`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      // Only include optional fields if they have values (avoid overwriting with null)
+      if (city) updateData.city = city;
+      if (headline) updateData.headline = headline;
+      if (bio) updateData.bio = bio;
+      if (company) updateData.company = company;
+      if (interestsArray.length > 0) updateData.interests = interestsArray;
 
-      if (!res.ok) throw new Error("Failed to save profile");
-      
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error("Profile save error:", profileError);
+        throw new Error(profileError.message);
+      }
+
       handleNext("SUCCESS");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please check your connection.");
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please check your connection.";
+      alert(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -321,7 +327,7 @@ function OnboardingContent() {
 
                   <button 
                     onClick={handleFinishSetup}
-                    disabled={!city || !state || !headline || isSubmitting}
+                    disabled={isSubmitting}
                     className="w-full mt-8 bg-[#0052CC] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? "Creating Profile..." : "Go To Dashboard"}
