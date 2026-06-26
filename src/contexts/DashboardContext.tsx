@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import { ShieldAlert } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface DashboardContextType {
   isMobileSidebarOpen: boolean;
@@ -22,19 +22,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function checkVerificationLock() {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-      if (!supabaseUrl || !supabaseKey) return;
-      
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('account_type, verified, created_at')
-        .eq('auth_id', session.user.id)
+        .eq('id', session.user.id)
         .single();
         
       // If no profile or no account_type, redirect to onboarding
