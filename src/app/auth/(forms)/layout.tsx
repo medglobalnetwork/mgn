@@ -74,18 +74,20 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right Panel (Auth Forms) */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center bg-white p-4 sm:p-8 lg:p-12 relative overflow-y-auto">
-        {/* Back Button */}
-        <div className="w-full max-w-[480px] flex justify-start mb-6">
-          <Link href="/" className="flex items-center gap-1.5 text-gray-500 font-bold hover:text-[#0052CC] transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Back
-          </Link>
-        </div>
-        
-        {/* The Form Container (No Card Styles) */}
-        <div className="w-full max-w-[480px] relative z-10">
-          {children}
+      <div className="w-full lg:w-1/2 flex flex-col items-center bg-white p-4 sm:p-8 lg:p-12 relative overflow-y-auto">
+        <div className="w-full max-w-[480px] pt-2 lg:pt-0 lg:flex lg:flex-col lg:justify-center lg:h-full">
+          {/* Back Button */}
+          <div className="w-full flex justify-start mb-6">
+            <Link href="/" className="flex items-center gap-1.5 text-gray-500 font-bold hover:text-[#0052CC] transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              Back
+            </Link>
+          </div>
+          
+          {/* The Form Container */}
+          <div className="w-full relative z-10">
+            {children}
+          </div>
         </div>
       </div>
     </div>
