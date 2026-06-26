@@ -11,15 +11,17 @@ import { supabase } from "@/lib/supabase";
  * - `/auth/login` → `/dashboard`
  * - `/auth/signup` → `/dashboard`
  *
- * Also redirects unauthenticated users away from protected pages.
+ * Waits for sessionResolved before deciding to avoid stale session redirects.
  */
 export default function AuthRedirect({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, sessionResolved } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading || !user) return;
+    // Wait for Supabase to fully validate the session before deciding
+    if (!sessionResolved) return;
+    if (!user) return;
 
     // If user is on a public page but is logged in → redirect away
     if (pathname === "/" || pathname === "/auth/login" || pathname === "/auth/signup") {
@@ -39,7 +41,7 @@ export default function AuthRedirect({ children }: { children: React.ReactNode }
       };
       redirectUser();
     }
-  }, [user, loading, pathname, router]);
+  }, [user, sessionResolved, pathname, router]);
 
   return <>{children}</>;
 }

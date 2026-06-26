@@ -31,6 +31,7 @@ type AuthContextType = {
   user: AppUser | null;
   session: Session | null;
   loading: boolean;
+  sessionResolved: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionResolved, setSessionResolved] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   // Helper to map Supabase User
@@ -90,6 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let sbUser: SupabaseUser | null = null;
     let fbUser: FirebaseUser | null = null;
+    let hasResolved = false;
 
     const updateState = () => {
       if (sbUser) {
@@ -102,17 +105,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     };
 
-    // Supabase Listener
+    // Supabase Listener — getSession returns cached cookies instantly
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       sbUser = session?.user ?? null;
       updateState();
     });
 
+    // onAuthStateChange fires AFTER Supabase validates/refreshes the token
+    // This is the TRUE auth state — use it to resolve session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       sbUser = session?.user ?? null;
       updateState();
+      if (!hasResolved) {
+        hasResolved = true;
+        setSessionResolved(true);
+      }
     });
 
     // Firebase Listener
@@ -216,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
+        sessionResolved,
         login,
         signup,
         logout,
