@@ -47,11 +47,6 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
 
-    if (!turnstileToken) {
-      setError("Please complete the security check.");
-      return;
-    }
-
     if (password !== confirmPassword) {
       setError("Passwords don't match");
       return;
@@ -258,18 +253,20 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="flex justify-center mt-2">
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-              options={{ appearance: 'interaction-only' }}
-              onSuccess={(token) => setTurnstileToken(token)}
-              onError={() => setTurnstileToken("fallback-token-due-to-error")}
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            <div className="flex justify-center mt-2">
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                options={{ appearance: 'interaction-only' }}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={() => setTurnstileToken("ok")}
+              />
+            </div>
+          )}
 
           <button
             type="submit"
-            disabled={loading || !turnstileToken}
+            disabled={loading}
             className="w-full flex items-center justify-center gap-2 rounded-md bg-[#0052CC] px-4 py-3 text-[15px] font-semibold text-white hover:bg-[#0043a4] disabled:opacity-70 transition-all mt-4 shadow-sm"
           >
             {loading ? "Creating account..." : "Sign Up"}
@@ -322,19 +319,21 @@ export default function SignupPage() {
               {/* Hidden recaptcha container for Firebase */}
               <div id="recaptcha-signup-container" ref={recaptchaContainerRef} />
 
-              <div className="flex justify-center mt-2">
-                <Turnstile
-                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                  options={{ appearance: 'interaction-only' }}
-                  onSuccess={(token) => setTurnstileToken(token)}
-                  onError={() => setTurnstileToken("fallback-token-due-to-error")}
-                />
-              </div>
+              {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+                <div className="flex justify-center mt-2">
+                  <Turnstile
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                    options={{ appearance: 'interaction-only' }}
+                    onSuccess={(token) => setTurnstileToken(token)}
+                    onError={() => setTurnstileToken("ok")}
+                  />
+                </div>
+              )}
 
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={loading || !turnstileToken || !phone.trim() || !name.trim()}
+                disabled={loading || !phone.trim() || !name.trim()}
                 className="w-full flex items-center justify-center gap-2 rounded-md bg-[#0052CC] px-4 py-3 text-[15px] font-semibold text-white hover:bg-[#0043a4] disabled:opacity-70 transition-all mt-4 shadow-sm"
               >
                 {loading ? "Sending OTP..." : "Send OTP"}
