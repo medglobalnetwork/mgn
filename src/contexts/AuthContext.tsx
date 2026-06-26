@@ -164,11 +164,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: displayName } }
+      options: {
+        data: { full_name: displayName },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      }
     });
-    if (error) throw error;
+    if (error) {
+      // Surface Supabase error message to the user
+      throw new Error(error.message || "Signup failed. Please try again.");
+    }
     if (data.user) {
-      await syncUserWithBackend(data.user.id, null, data.user.email || null, null, displayName || null, 'email');
+      // syncUserWithBackend is best-effort — don't block signup on it
+      syncUserWithBackend(data.user.id, null, data.user.email || null, null, displayName || null, 'email').catch(() => {});
     }
   }
 
