@@ -62,7 +62,7 @@ export default function PostInput() {
         mediaUrl = publicUrlData.publicUrl;
       }
 
-      await createPostAction(content, mediaUrl, user.id);
+      await createPostAction(user.id, content, mediaUrl ?? undefined);
       setContent("");
       removeImage();
     } catch (error) {
