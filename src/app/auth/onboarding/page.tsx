@@ -20,7 +20,7 @@ type OnboardingStep =
   | "SUCCESS";
 
 function OnboardingContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionResolved } = useAuth();
   const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("WELCOME");
@@ -44,9 +44,14 @@ function OnboardingContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    // Wait for Supabase to fully validate the session before redirecting.
+    // Without this, getSession() returns stale null → user lands on /auth/login
+    // even though they just authenticated via OAuth.
+    if (!sessionResolved) return;
+    
+    if (!user) {
       router.push("/auth/login");
-    } else if (user) {
+    } else {
       if (!name) setName(user.user_metadata?.full_name || "");
       
       const checkStatus = async () => {
@@ -57,7 +62,7 @@ function OnboardingContent() {
       };
       checkStatus();
     }
-  }, [user, loading, router]);
+  }, [user, sessionResolved, router]);
 
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
 

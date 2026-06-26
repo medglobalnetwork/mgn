@@ -192,12 +192,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signInWithGoogle() {
-    // Note: OAuth redirect will handle the sync differently if needed,
-    // but typically we can rely on a webhook or the onboarding page to trigger sync.
+    // Redirect to /auth/callback which handles the OAuth token exchange,
+    // then forwards to /auth/onboarding where Supabase client picks up the session.
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/onboarding`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       }
     });
     if (error) throw error;

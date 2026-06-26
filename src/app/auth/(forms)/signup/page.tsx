@@ -69,14 +69,15 @@ export default function SignupPage() {
     try {
       setLoading(true);
       setError("");
+      // signInWithOAuth does a HARD browser redirect to Google.
+      // After auth, Supabase redirects to /auth/callback → /auth/onboarding.
+      // No need for router.replace — the page unloads.
       await signInWithGoogle();
-      // Route to onboarding
-      router.replace("/auth/onboarding");
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
+    // Note: don't set setLoading(false) — page is navigating away
   }
 
   return (
