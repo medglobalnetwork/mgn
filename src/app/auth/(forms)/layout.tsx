@@ -75,7 +75,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Right Panel (Auth Forms) */}
       <div className="w-full lg:w-1/2 flex flex-col items-center bg-white p-4 sm:p-8 lg:p-12 relative overflow-y-auto">
-        <div className="w-full max-w-[480px] pt-2 lg:pt-0 lg:flex lg:flex-col lg:justify-center lg:h-full">
+        <div className="w-full max-w-[480px] pt-6 lg:pt-8">
           {/* Back Button */}
           <div className="w-full flex justify-start mb-6">
             <Link href="/" className="flex items-center gap-1.5 text-gray-500 font-bold hover:text-[#0052CC] transition-colors">
