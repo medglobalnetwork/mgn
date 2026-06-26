@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthRedirect from "@/components/AuthRedirect";
+import OAuthHandler from "@/components/OAuthHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -128,6 +129,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-gray-50 overflow-x-hidden w-full">
         <AuthProvider>
+          <OAuthHandler />
           <AuthRedirect>
             <Navbar />
             <main className="flex-1">{children}</main>
