@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AuthRedirect from "@/components/AuthRedirect";
-import OAuthHandler from "@/components/OAuthHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -82,7 +79,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Advanced JSON-LD structured data for AEO / GEO Context
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -128,14 +124,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-gray-50 overflow-x-hidden w-full">
-        <AuthProvider>
-          <OAuthHandler />
-          <AuthRedirect>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </AuthRedirect>
-        </AuthProvider>
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );
