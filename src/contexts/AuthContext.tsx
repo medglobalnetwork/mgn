@@ -1,20 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { User as SupabaseUser, Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
-import { 
-  auth as firebaseAuth, 
-  signInWithPhoneNumber, 
-  RecaptchaVerifier, 
-  ConfirmationResult, 
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  User as FirebaseUser
-} from "@/lib/firebase";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export type AppUser = {
-  id: string; // will be auth.users id OR firebase uid
+  id: string;
   email?: string;
   phone?: string;
   email_confirmed_at?: string;
@@ -29,7 +20,7 @@ export type AppUser = {
 
 type AuthContextType = {
   user: AppUser | null;
-  session: Session | null;
+  session: any | null;
   loading: boolean;
   sessionResolved: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -38,8 +29,8 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (displayName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  sendPhoneOtp: (phoneNumber: string, containerId: string) => Promise<void>;
-  verifyPhoneOtp: (otp: string) => Promise<void>;
+  sendPhoneOtp: (phoneNumber: string) => Promise<void>;
+  verifyPhoneOtp: (otp: string, phone: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -52,178 +43,187 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionResolved, setSessionResolved] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-
-  // Helper to map Supabase User
-  const mapSupabaseUser = (su: SupabaseUser | null): AppUser | null => {
-    if (!su) return null;
-    return {
-      id: su.id,
-      email: su.email,
-      phone: su.phone,
-      email_confirmed_at: su.email_confirmed_at,
-      user_metadata: {
-        full_name: su.user_metadata?.full_name,
-        avatar_url: su.user_metadata?.avatar_url,
-        provider: su.app_metadata?.provider || 'email'
-      }
-    };
-  };
-
-  // Helper to map Firebase User
-  const mapFirebaseUser = (fu: FirebaseUser | null): AppUser | null => {
-    if (!fu) return null;
-    return {
-      id: fu.uid,
-      email: fu.email || undefined,
-      phone: fu.phoneNumber || undefined,
-      email_confirmed_at: fu.emailVerified ? new Date().toISOString() : undefined,
-      user_metadata: {
-        full_name: fu.displayName || undefined,
-        avatar_url: fu.photoURL || undefined,
-        provider: 'firebase'
-      }
-    };
-  };
 
   useEffect(() => {
-    let sbUser: SupabaseUser | null = null;
-    let fbUser: FirebaseUser | null = null;
-    let hasResolved = false;
-
-    const updateState = () => {
-      if (sbUser) {
-        setUser(mapSupabaseUser(sbUser));
-      } else if (fbUser) {
-        setUser(mapFirebaseUser(fbUser));
-      } else {
-        setUser(null);
+    const initAuth = async () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        setLoading(false);
+        setSessionResolved(true);
+        return;
       }
-      setLoading(false);
-    };
-
-    // Supabase Listener — getSession returns cached cookies instantly
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      sbUser = session?.user ?? null;
-      updateState();
-    });
-
-    // onAuthStateChange fires AFTER Supabase validates/refreshes the token
-    // This is the TRUE auth state — use it to resolve session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      sbUser = session?.user ?? null;
-      updateState();
-      if (!hasResolved) {
-        hasResolved = true;
+      
+      try {
+        const res = await fetch(`${API_URL}/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          // Assuming the backend returns something similar to AppUser
+          setUser({
+            id: data.id,
+            email: data.email,
+            phone: data.phone,
+            user_metadata: {
+              full_name: data.full_name || data.first_name,
+              avatar_url: data.avatar_url,
+              provider: "email"
+            }
+          });
+          setSession({ access_token: token });
+        } else {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+        }
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      } finally {
+        setLoading(false);
         setSessionResolved(true);
       }
-    });
-
-    // Firebase Listener
-    const unsubscribeFb = onAuthStateChanged(firebaseAuth, (user) => {
-      fbUser = user;
-      updateState();
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      unsubscribeFb();
     };
+    
+    initAuth();
   }, []);
 
-  async function syncUserWithBackend(authId: string | null, firebaseUid: string | null, email: string | null, phone: string | null, fullName: string | null, provider: string) {
-    try {
-      await fetch("http://localhost:8000/auth/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          auth_id: authId,
-          firebase_uid: firebaseUid,
-          email,
-          phone,
-          full_name: fullName,
-          provider,
-        }),
-      });
-    } catch (e) {
-      console.error("Failed to sync user with Rust backend:", e);
-    }
-  }
-
   async function login(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    const res = await fetch(`${API_URL}/login/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || "Login failed");
+    }
+    
+    const data = await res.json();
+    localStorage.setItem("access_token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
+    
+    setUser({
+      id: data.user?.id || "",
+      email: data.user?.email || email,
+      user_metadata: {
+        full_name: data.user?.full_name,
+        provider: "email"
+      }
+    });
+    setSession({ access_token: data.access_token });
   }
 
   async function signup(email: string, password: string, displayName?: string) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: displayName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+    const res = await fetch(`${API_URL}/signup/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, full_name: displayName || "" })
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || "Signup failed");
+    }
+    
+    const data = await res.json();
+    localStorage.setItem("access_token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
+    
+    setUser({
+      id: data.user?.id || "",
+      email: data.user?.email || email,
+      user_metadata: {
+        full_name: data.user?.full_name || displayName,
+        provider: "email"
       }
     });
-    if (error) {
-      // Surface Supabase error message to the user
-      throw new Error(error.message || "Signup failed. Please try again.");
-    }
-    if (data.user) {
-      // syncUserWithBackend is best-effort — don't block signup on it
-      syncUserWithBackend(data.user.id, null, data.user.email || null, null, displayName || null, 'email').catch(() => {});
-    }
+    setSession({ access_token: data.access_token });
   }
 
   async function logout() {
-    await Promise.all([
-      supabase.auth.signOut(),
-      firebaseSignOut(firebaseAuth)
-    ]);
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(console.error);
+    }
+    
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setUser(null);
+    setSession(null);
   }
 
   async function resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) throw error;
+    const res = await fetch(`${API_URL}/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    if (!res.ok) throw new Error("Reset password failed");
   }
 
   async function updateUserProfile(displayName: string) {
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: displayName }
+    const token = localStorage.getItem("access_token");
+    const res = await fetch(`${API_URL}/basic`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify({ preferred_name: displayName })
     });
-    if (error) throw error;
+    
+    if (!res.ok) throw new Error("Update profile failed");
+    if (user) {
+      setUser({ ...user, user_metadata: { ...user.user_metadata, full_name: displayName } });
+    }
   }
 
   async function signInWithGoogle() {
-    // Redirect to /auth/callback which handles the OAuth token exchange,
-    // then forwards to /auth/onboarding where Supabase client picks up the session.
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      }
-    });
-    if (error) throw error;
+    // Requires backend integration or frontend OAuth flow that passes token to backend
+    throw new Error("Not implemented with backend API yet");
   }
 
-  async function sendPhoneOtp(phoneNumber: string, containerId: string) {
-    const recaptchaVerifier = new RecaptchaVerifier(firebaseAuth, containerId, {
-      size: 'invisible'
+  async function sendPhoneOtp(phoneNumber: string) {
+    const res = await fetch(`${API_URL}/login/phone`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: phoneNumber })
     });
-    const result = await signInWithPhoneNumber(firebaseAuth, phoneNumber, recaptchaVerifier);
-    setConfirmationResult(result);
+    if (!res.ok) throw new Error("Send OTP failed");
   }
 
-  async function verifyPhoneOtp(otp: string) {
-    if (!confirmationResult) throw new Error("No OTP requested");
-    const result = await confirmationResult.confirm(otp);
-    if (result.user) {
-      await syncUserWithBackend(null, result.user.uid, null, result.user.phoneNumber, null, 'firebase');
+  async function verifyPhoneOtp(otp: string, phone: string) {
+    const res = await fetch(`${API_URL}/verify-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, otp })
+    });
+    
+    if (!res.ok) throw new Error("Verify OTP failed");
+    
+    const data = await res.json();
+    localStorage.setItem("access_token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
     }
+    
+    setUser({
+      id: data.user?.id || "",
+      phone,
+      user_metadata: { provider: "phone" }
+    });
+    setSession({ access_token: data.access_token });
   }
 
   return (

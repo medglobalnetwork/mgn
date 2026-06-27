@@ -138,31 +138,35 @@ CREATE TABLE IF NOT EXISTS consent_records (
 -- PHASE 1: IDENTITY & PROFILE ENGINE
 -- ==========================================
 
--- MGN Internal User (separate from Supabase auth)
-CREATE TABLE IF NOT EXISTS mgn_users (
+-- Users (Core MGN Identity)
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE,
-    phone VARCHAR(20) UNIQUE,
+    phone_number VARCHAR(20) UNIQUE,
     password_hash TEXT,
-    auth_provider VARCHAR(50) DEFAULT 'email',
-    role VARCHAR(50) DEFAULT 'guest',
     status VARCHAR(50) DEFAULT 'active',
-    two_factor_enabled BOOLEAN DEFAULT false,
-    two_factor_method VARCHAR(50),
-    two_factor_secret TEXT,
-    recovery_email VARCHAR(255),
-    recovery_phone VARCHAR(20),
-    backup_codes TEXT[],
-    last_login_at TIMESTAMP WITH TIME ZONE,
-    password_changed_at TIMESTAMP WITH TIME ZONE,
+    primary_login_method VARCHAR(50) DEFAULT 'email',
+    email_verified BOOLEAN DEFAULT false,
+    phone_verified BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Auth Identities (Account Linking)
+CREATE TABLE IF NOT EXISTS auth_identities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL,
+    provider_user_id VARCHAR(255) NOT NULL,
+    provider_email VARCHAR(255),
+    linked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(provider, provider_user_id)
 );
 
 -- Sessions
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES mgn_users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     refresh_token_hash TEXT NOT NULL,
     device_name VARCHAR(255),
     device_fingerprint VARCHAR(255),
@@ -181,7 +185,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- Login History
 CREATE TABLE IF NOT EXISTS login_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES mgn_users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     ip VARCHAR(45),
     device TEXT,
     browser VARCHAR(100),
@@ -196,7 +200,7 @@ CREATE TABLE IF NOT EXISTS login_history (
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     auth_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    mgn_user_id UUID REFERENCES mgn_users(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     firebase_uid VARCHAR(255) UNIQUE,
     username VARCHAR(255) UNIQUE,
     full_name VARCHAR(200),

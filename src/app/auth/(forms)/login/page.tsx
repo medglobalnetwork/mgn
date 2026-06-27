@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Email login ───────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
@@ -46,13 +45,9 @@ export default function LoginPage() {
       setError("Please enter your phone number");
       return;
     }
-    if (!recaptchaContainerRef.current) {
-      setError("Security check not ready. Please refresh the page.");
-      return;
-    }
     setLoading(true);
     try {
-      await sendPhoneOtp(phone, "recaptcha-login-container");
+      await sendPhoneOtp(phone);
       setOtpSent(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to send OTP";
@@ -71,7 +66,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      await verifyPhoneOtp(otp);
+      await verifyPhoneOtp(otp, phone);
       router.replace("/auth/onboarding");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "OTP verification failed";
@@ -194,7 +189,7 @@ export default function LoginPage() {
         </form>
       )}
 
-      {/* ═══════════════ PHONE LOGIN (Firebase OTP) ═══════════════ */}
+      {/* ═══════════════ PHONE LOGIN (Supabase OTP) ═══════════════ */}
       {loginMethod === "phone" && (
         <div className="space-y-4">
           {/* Step 1: Enter phone */}
@@ -215,13 +210,10 @@ export default function LoginPage() {
                     placeholder="+91 98765 43210"
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Include country code (e.g. +91)</p>
-              </div>
+                 <p className="text-xs text-gray-400 mt-1">Include country code (e.g. +91)</p>
+               </div>
 
-              {/* Hidden recaptcha container for Firebase */}
-              <div id="recaptcha-login-container" ref={recaptchaContainerRef} />
-
-              <div className="flex justify-center mt-2">
+               <div className="flex justify-center mt-2">
                 {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
                   <Turnstile
                     siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
