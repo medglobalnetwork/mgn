@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 /**
@@ -15,7 +15,9 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
  *
  * This component catches ALL these cases on ANY page and redirects.
  */
-export default function OAuthHandler() {
+
+// Inner component that uses useSearchParams
+function OAuthHandlerContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,4 +62,12 @@ export default function OAuthHandler() {
   }, [pathname, searchParams, router]);
 
   return null;
+}
+
+export default function OAuthHandler() {
+  return (
+    <Suspense fallback={null}>
+      <OAuthHandlerContent />
+    </Suspense>
+  );
 }
