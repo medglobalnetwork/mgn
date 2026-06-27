@@ -190,8 +190,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signInWithGoogle() {
-    // Requires backend integration or frontend OAuth flow that passes token to backend
-    throw new Error("Not implemented with backend API yet");
+    // Import Firebase auth utilities (client-side only)
+    const { auth, GoogleAuthProvider, signInWithPopup } = await import("@/lib/firebase");
+
+    const provider = new GoogleAuthProvider();
+    provider.addScope("profile");
+    provider.addScope("email");
+
+    // Open Google popup for sign-in
+    const result = await signInWithPopup(auth, provider);
+    const firebaseUser = result.user;
+
+    // Get the Google ID token (JWT) from Firebase
+    const idToken = await firebaseUser.getIdToken();
+
+    // Send ID token to our Rust backend which will:
+    // 1. Decode the Google JWT to extract email, name, sub
+    // 2. Create profile if user is new, or find existing profile
+    // 3. Create a session + issue our own JWT tokens
+    const res = await fetch(`${API_URL}/login/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_token: idToken }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || "Google login failed");
+    }
+
+    const data = await res.json();
+
+    // Store tokens
+    localStorage.setItem("access_token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
+
+    // Set user from backend response
+    setUser({
+      id: data.user?.id || firebaseUser.uid,
+      email: data.user?.email || firebaseUser.email || undefined,
+      phone: data.user?.phone || firebaseUser.phoneNumber || undefined,
+      user_metadata: {
+        full_name: data.user?.full_name || firebaseUser.displayName || "",
+        avatar_url: data.user?.avatar_url || firebaseUser.photoURL || "",
+        provider: "google",
+      },
+    });
+    setSession({ access_token: data.access_token });
   }
 
   async function sendPhoneOtp(phoneNumber: string) {

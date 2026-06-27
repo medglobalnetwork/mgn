@@ -119,6 +119,7 @@ export default function SignupPage() {
       setLoading(true);
       setError("");
       await signInWithGoogle();
+      router.replace("/auth/onboarding");
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
