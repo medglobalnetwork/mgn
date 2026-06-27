@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const AUTH_URL = `${API_URL}/v1/auth`;
 
 export type AppUser = {
   id: string;
@@ -50,37 +51,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem("access_token");
-      if (!token) {
+      const savedUser = localStorage.getItem("user_data");
+      
+      if (!token || !savedUser) {
         setLoading(false);
         setSessionResolved(true);
         return;
       }
-      
+
+      // Decode JWT to check expiry
       try {
-        const res = await fetch(`${API_URL}/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const now = Math.floor(Date.now() / 1000);
         
-        if (res.ok) {
-          const data = await res.json();
-          // Assuming the backend returns something similar to AppUser
-          setUser({
-            id: data.id,
-            email: data.email,
-            phone: data.phone,
-            user_metadata: {
-              full_name: data.full_name || data.first_name,
-              avatar_url: data.avatar_url,
-              provider: "email"
-            }
-          });
-          setSession({ access_token: token });
-        } else {
+        if (payload.exp && payload.exp < now) {
+          // Token expired — clear everything
           localStorage.removeItem("access_token");
           localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user_data");
+          setLoading(false);
+          setSessionResolved(true);
+          return;
         }
+
+        // Token valid — restore user from localStorage
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setSession({ access_token: token });
       } catch (err) {
-        console.error("Failed to fetch user:", err);
+        console.error("Failed to restore session:", err);
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_data");
       } finally {
         setLoading(false);
         setSessionResolved(true);
@@ -91,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const res = await fetch(`${API_URL}/login/email`, {
+    const res = await fetch(`${AUTH_URL}/login/email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -108,19 +110,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("refresh_token", data.refresh_token);
     }
     
-    setUser({
+    const userData: AppUser = {
       id: data.user?.id || "",
       email: data.user?.email || email,
       user_metadata: {
         full_name: data.user?.full_name,
         provider: "email"
       }
-    });
+    };
+    localStorage.setItem("user_data", JSON.stringify(userData));
+    setUser(userData);
     setSession({ access_token: data.access_token });
   }
 
   async function signup(email: string, password: string, displayName?: string) {
-    const res = await fetch(`${API_URL}/signup/email`, {
+    const res = await fetch(`${AUTH_URL}/signup/email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, full_name: displayName || "" })
@@ -137,21 +141,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("refresh_token", data.refresh_token);
     }
     
-    setUser({
+    const userData: AppUser = {
       id: data.user?.id || "",
       email: data.user?.email || email,
       user_metadata: {
         full_name: data.user?.full_name || displayName,
         provider: "email"
       }
-    });
+    };
+    localStorage.setItem("user_data", JSON.stringify(userData));
+    setUser(userData);
     setSession({ access_token: data.access_token });
   }
 
   async function logout() {
     const token = localStorage.getItem("access_token");
     if (token) {
-      await fetch(`${API_URL}/logout`, {
+      await fetch(`${AUTH_URL}/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       }).catch(console.error);
@@ -159,12 +165,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_data");
     setUser(null);
     setSession(null);
   }
 
   async function resetPassword(email: string) {
-    const res = await fetch(`${API_URL}/forgot-password`, {
+    const res = await fetch(`${AUTH_URL}/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
@@ -174,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function updateUserProfile(displayName: string) {
     const token = localStorage.getItem("access_token");
-    const res = await fetch(`${API_URL}/basic`, {
+    const res = await fetch(`${API_URL}/v1/profile/basic`, {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",
@@ -208,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 1. Decode the Google JWT to extract email, name, sub
     // 2. Create profile if user is new, or find existing profile
     // 3. Create a session + issue our own JWT tokens
-    const res = await fetch(`${API_URL}/login/google`, {
+    const res = await fetch(`${AUTH_URL}/login/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id_token: idToken }),
@@ -228,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Set user from backend response
-    setUser({
+    const userData: AppUser = {
       id: data.user?.id || firebaseUser.uid,
       email: data.user?.email || firebaseUser.email || undefined,
       phone: data.user?.phone || firebaseUser.phoneNumber || undefined,
@@ -237,12 +244,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatar_url: data.user?.avatar_url || firebaseUser.photoURL || "",
         provider: "google",
       },
-    });
+    };
+    localStorage.setItem("user_data", JSON.stringify(userData));
+    setUser(userData);
     setSession({ access_token: data.access_token });
   }
 
   async function sendPhoneOtp(phoneNumber: string) {
-    const res = await fetch(`${API_URL}/login/phone`, {
+    const res = await fetch(`${AUTH_URL}/login/phone`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone: phoneNumber })
@@ -251,7 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function verifyPhoneOtp(otp: string, phone: string) {
-    const res = await fetch(`${API_URL}/verify-otp`, {
+    const res = await fetch(`${AUTH_URL}/verify-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone, otp })
@@ -265,11 +274,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("refresh_token", data.refresh_token);
     }
     
-    setUser({
+    const userData: AppUser = {
       id: data.user?.id || "",
       phone,
       user_metadata: { provider: "phone" }
-    });
+    };
+    localStorage.setItem("user_data", JSON.stringify(userData));
+    setUser(userData);
     setSession({ access_token: data.access_token });
   }
 
