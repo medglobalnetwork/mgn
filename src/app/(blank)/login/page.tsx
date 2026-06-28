@@ -189,8 +189,9 @@ export default function LoginPage() {
         if (result.success) { router.push('/dashboard'); }
         else { setError(result.error || 'OTP verification failed'); }
       }
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err: unknown) {
+      const msg = typeof err === 'string' ? err : (err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +213,7 @@ export default function LoginPage() {
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{isSignup ? 'Create account' : 'Welcome back'}</h2>
         <p className="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">{isSignup ? 'Create account to get started' : 'Log in to your account'}</p>
 
-        {error && <div className="mb-4 p-3 text-xs sm:text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{error}</div>}
+        {error && <div className="mb-4 p-3 text-xs sm:text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">{typeof error === 'string' ? error : JSON.stringify(error)}</div>}
         {success && <div className="mb-4 p-3 text-xs sm:text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">{success}</div>}
 
         {!isSignup && (

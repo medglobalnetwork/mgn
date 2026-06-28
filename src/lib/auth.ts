@@ -4,6 +4,16 @@ import { createClient } from '@/lib/supabase/server';
 import { validateEmail } from '@/lib/email-validator';
 import { type DeviceType, generateSessionToken } from '@/lib/device';
 
+// Helper: safely convert any error to a string
+function toErrorMessage(err: unknown): string {
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) {
+    return String((err as Record<string, unknown>).message || 'An error occurred');
+  }
+  return 'An error occurred';
+}
+
 // Helper: extract only serializable user data
 function serializeUser(user: Record<string, unknown> | null) {
   if (!user) return null;
@@ -78,7 +88,7 @@ export async function signUpWithEmail({
   });
 
   if (authError) {
-    return { success: false, error: authError.message };
+    return { success: false, error: toErrorMessage(authError) };
   }
 
   // 5. Create profile
@@ -94,6 +104,7 @@ export async function signUpWithEmail({
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
+      return { success: false, error: 'Account created but profile setup failed. Please contact support.' };
     }
   }
 
@@ -133,7 +144,7 @@ export async function signInWithEmail({
     if (error.message.includes('Invalid login')) {
       return { success: false, error: 'Invalid email or password' };
     }
-    return { success: false, error: error.message };
+    return { success: false, error: toErrorMessage(error) };
   }
 
   // 3. Register device session
@@ -195,7 +206,7 @@ export async function signInWithUsername({
     if (error.message.includes('Invalid login')) {
       return { success: false, error: 'Invalid username or password' };
     }
-    return { success: false, error: error.message };
+    return { success: false, error: toErrorMessage(error) };
   }
 
   // 3. Register device session
@@ -259,7 +270,7 @@ export async function sendPhoneOTP({
   });
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: toErrorMessage(error) };
   }
 
   return {
@@ -293,7 +304,7 @@ export async function verifyPhoneOTP({
   });
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: toErrorMessage(error) };
   }
 
   // Create profile for new users
@@ -358,7 +369,7 @@ export async function checkDeviceSession({
   });
 
   if (error) {
-    return { valid: false, error: error.message };
+    return { valid: false, error: toErrorMessage(error) };
   }
 
   return data;
@@ -390,7 +401,7 @@ export async function signOut({
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: toErrorMessage(error) };
   }
 
   return { success: true };
